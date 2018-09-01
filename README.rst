@@ -8,7 +8,7 @@ Install
 ``pip install django-user-email-extension``
 
 Add to installed apps, and email provider details
-.. code-block:: shell-session
+.. code-block:: python
     INSTALLED_APPS = [
         ...
         'django_user_email_extension',
@@ -31,7 +31,7 @@ Run migrations:
 Optional:
 
 add to settings.py, if not set, verification email will never expire.
-.. code-block:: shell-session
+.. code-block:: python
     ...
     DJANGO_EMAIL_VERIFIER_EXPIRE_TIME = 24  # In Hours
     ...
@@ -40,7 +40,7 @@ add to settings.py, if not set, verification email will never expire.
 Usage Example
 -------------
 
-.. code-block:: shell-session
+.. code-block:: python
     from django_user_email_extension.models import *
 
     user_object = User.objects.create_user('EMAIL', 'PASSWORD')
@@ -58,7 +58,7 @@ Usage Example
 
 
 The confirmation uuid can be sent as part of the body for example:
-.. code-block:: shell-session
+.. code-block:: python
     body = 'Follow this link to verify your account: https://nalkins.cloud' + \
            '%s' % reverse('verify_account',
                           kwargs={'uuid': str(user_object.get_uuid_of_email())})

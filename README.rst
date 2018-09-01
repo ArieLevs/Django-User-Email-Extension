@@ -8,21 +8,20 @@ Install
 ``pip install django-user-email-extension``
 
 Add to installed apps, and email provider details
-```
-INSTALLED_APPS = [
-    ...
-    'django_user_email_extension',
-    ...
-]
+.. code-block:: shell-session
+    INSTALLED_APPS = [
+        ...
+        'django_user_email_extension',
+        ...
+    ]
 
-EMAIL_USE_TLS = True
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('email_host')
-EMAIL_PORT = os.environ.get('email_port')
-EMAIL_HOST_USER = os.environ.get('email_username')
-EMAIL_HOST_PASSWORD = os.environ.get('email_password')
+    EMAIL_USE_TLS = True
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('email_host')
+    EMAIL_PORT = os.environ.get('email_port')
+    EMAIL_HOST_USER = os.environ.get('email_username')
+    EMAIL_HOST_PASSWORD = os.environ.get('email_password')
 
-```
 
 Run migrations:
 
@@ -32,35 +31,34 @@ Run migrations:
 Optional:
 
 add to settings.py, if not set, verification email will never expire.
-```
-DJANGO_EMAIL_VERIFIER_EXPIRE_TIME = 24  # In Hours
-```
+.. code-block:: shell-session
+    ...
+    DJANGO_EMAIL_VERIFIER_EXPIRE_TIME = 24  # In Hours
+    ...
 
 
 Usage Example
 -------------
 
-```
-from django_user_email_extension.models import *
+.. code-block:: shell-session
+    from django_user_email_extension.models import *
 
-user_object = User.objects.create_user('EMAIL', 'PASSWORD')
+    user_object = User.objects.create_user('EMAIL', 'PASSWORD')
 
-# user is a Django User object
-user_object.create_verification_email()
+    # user is a Django User object
+    user_object.create_verification_email()
 
-# Send the verification email
-user_object.send_verification_email(subject=subject,
-                                 body=body,
-                                 from_mail=EMAIL_HOST_USER)
+    # Send the verification email
+    user_object.send_verification_email(subject=subject,
+                                     body=body,
+                                     from_mail=EMAIL_HOST_USER)
 
-# Initiate verification process
-verify_record(uuid_value=uuid)
+    # Initiate verification process
+    verify_record(uuid_value=uuid)
 
-```
 
 The confirmation uuid can be sent as part of the body for example:
-```python
-body = 'Follow this link to verify your account: https://nalkins.cloud' + \
-       '%s' % reverse('verify_account',
-                      kwargs={'uuid': str(user_object.get_uuid_of_email())})
-```
+.. code-block:: shell-session
+    body = 'Follow this link to verify your account: https://nalkins.cloud' + \
+           '%s' % reverse('verify_account',
+                          kwargs={'uuid': str(user_object.get_uuid_of_email())})

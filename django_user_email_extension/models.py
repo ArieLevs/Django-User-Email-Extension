@@ -57,10 +57,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(validators=[phone_number_validator()],
                                     max_length=17,
                                     blank=True)
-    linkedin = models.TextField(max_length=128, blank=True)
-    facebook = models.TextField(max_length=128, blank=True)
-    github = models.TextField(max_length=128, blank=True)
-    twitter = models.TextField(max_length=128, blank=True)
+
+    linkedin = models.URLField(max_length=255, blank=True)
+    facebook = models.URLField(max_length=255, blank=True)
+    github = models.URLField(max_length=255, blank=True)
+    twitter = models.URLField(max_length=255, blank=True)
 
     registration_ip = models.GenericIPAddressField('Registered From', null=True)
     language = models.CharField(_('Users Language'), max_length=2, null=False, default='EN')

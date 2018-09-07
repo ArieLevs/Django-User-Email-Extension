@@ -160,8 +160,8 @@ class DjangoEmailVerifier(models.Model):
     objects = DjangoEmailVerifierManger()
 
     class Meta:
-        verbose_name = _('email_verifications')
-        verbose_name_plural = _('email_verifications')
+        verbose_name = _('email verifications')
+        verbose_name_plural = _('email verifications')
         db_table = 'email_verifications'
 
     def __str__(self):

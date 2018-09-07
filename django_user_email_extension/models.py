@@ -8,6 +8,8 @@ from django.core.mail import send_mail
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 
+from django_user_email_extension.validators import phone_number_validator
+
 
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
@@ -45,12 +47,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_name = models.CharField(_('User Name'), max_length=128, blank=True)
     first_name = models.CharField(_('First Name'), max_length=32, blank=True)
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
-    birth_date = models.DateField(null=True, blank=True)
 
     address = models.TextField(max_length=500, default='', blank=True)
     city = models.CharField(max_length=30, default='', blank=True)
     country = models.CharField(max_length=30, default='', blank=True)
     postal_code = models.IntegerField(blank=True, default=00000)
+
+    birth_date = models.DateField(null=True, blank=True)
+    phone_number = models.CharField(validators=[phone_number_validator()],
+                                    max_length=17,
+                                    blank=True)
+    linkedin = models.TextField(max_length=128, blank=True)
+    facebook = models.TextField(max_length=128, blank=True)
+    github = models.TextField(max_length=128, blank=True)
+    twitter = models.TextField(max_length=128, blank=True)
 
     registration_ip = models.GenericIPAddressField('Registered From', null=True)
     language = models.CharField(_('Users Language'), max_length=2, null=False, default='EN')

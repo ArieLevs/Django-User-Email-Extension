@@ -73,7 +73,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(
         _('Active Status'),
-        default=True,
+        default=False,
         help_text=_('Define if this user should be treated as active. '),
     )
     date_created = models.DateTimeField('Date Created', auto_now_add=True, blank=True)
@@ -81,8 +81,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_login = models.DateTimeField(default=None, blank=True, null=True)
     last_login_ip = models.GenericIPAddressField('Logged in from', default=None, blank=True, null=True)
 
-    USERNAME_FIELD = 'email'
     objects = UserManager()
+
+    USERNAME_FIELD = 'email'
 
     class Meta:
         verbose_name = _('user')
@@ -122,8 +123,8 @@ class DjangoEmailVerifierManger(models.Manager):
         if not user:
             raise ValueError('User object must be provided')
 
-        if not email:
-            raise ValueError('Email must be provided, or User object with [email] field')
+        if email not in user.email:
+            raise ValueError('Email does not belong to user: %s', user.get_username())
         return self.create(user=user, email=email)
 
     # @receiver(post_save, sender=DjangoEmailVerifier, dispatch_uid="verify new account")
@@ -159,6 +160,8 @@ class DjangoEmailVerifier(models.Model):
 
     objects = DjangoEmailVerifierManger()
 
+    REQUIRED_FIELDS = ['user']
+
     class Meta:
         verbose_name = _('email verifications')
         verbose_name_plural = _('email verifications')
@@ -167,11 +170,9 @@ class DjangoEmailVerifier(models.Model):
     def __str__(self):
         return 'Email Verification for User: ' + self.user.get_username()
 
-    @property
     def verified(self):
         return self.is_verified
 
-    @property
     def uuid_expire_date(self):
         # Only if DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is not None,
         # Else, uuid never expire.
@@ -179,9 +180,8 @@ class DjangoEmailVerifier(models.Model):
         hours_to_expire = getattr(settings, 'DJANGO_EMAIL_VERIFIER_EXPIRE_TIME', None)
         return self.date_created + timedelta(hours=hours_to_expire) if hours_to_expire is not None else None
 
-    @property
     def is_uuid_expired(self):
-        return self.uuid_expire_date and timezone.now() >= self.uuid_expire_date
+        return timezone.now() >= self.uuid_expire_date()
 
 
 def verify_record(uuid_value):

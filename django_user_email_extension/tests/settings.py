@@ -38,8 +38,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'django_user_email_extension.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -108,4 +106,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-AUTH_USER_MODEL = '../django_user_email_extension.User'
+AUTH_USER_MODEL = 'django_user_email_extension.User'
+DJANGO_EMAIL_VERIFIER_EXPIRE_TIME = 25

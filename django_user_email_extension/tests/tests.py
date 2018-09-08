@@ -40,7 +40,7 @@ class TestUserModel(TestCase):
 class TestDjangoEmailVerifierModel(TestCase):
 
     def setUp(self):
-        self.user = User(email="test@nalkins.cloud")
+        self.user = User.objects.create(email="test@nalkins.cloud")
         self.email_object = DjangoEmailVerifier.objects.create(user=self.user,
                                                                email=self.user.email)
 
@@ -58,21 +58,34 @@ class TestDjangoEmailVerifierModel(TestCase):
     def test_is_uuid_expired(self):
         self.assertFalse(self.email_object.is_uuid_expired())
 
-# TODO Add managers tests
-# class TestUserManager(TestCase):
-#
-#     def test_create_user(self):
-#         User.objects.create()
-#
-#
-# class TestDjangoEmailVerifierManger(TestCase):
-#
-#     def setUp(self):
-#         self.user = User(email="test@nalkins.cloud")
-#
-#     def test_create_verification(self):
-#         DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
-#
-#     # def test_get_uuid_of_email(self):
-#     #     uuid_num = self.user.get_uuid_of_email()
-#     #     self.assertEqual(uuid_num, "(?P<uuid>[a-z0-9\-]+)")
+
+class TestUserManager(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(email="test_user_manager@nalkins.cloud")
+        DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
+
+    def test_create_user(self):
+        User.objects.create(email="test_create_user@nalkins.cloud")
+
+    def test_get_uuid_of_email(self):
+        email_object = DjangoEmailVerifier.objects.get(email=self.user.email)
+        uuid_num = self.user.email_verification_obj.get_uuid_of_email(email_object.email)
+        self.assertRegex(str(uuid_num), '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+
+
+class TestDjangoEmailVerifierManger(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(email="test_verification_manager@nalkins.cloud")
+        DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
+
+    def test_create_verification(self):
+
+        self.assertEqual(DjangoEmailVerifier.objects.get(email=self.user.email).email,
+                         "test_verification_manager@nalkins.cloud")
+
+    def test_get_uuid_of_email(self):
+        self.email_object = DjangoEmailVerifier.objects.get(email=self.user.email)
+        uuid_num = DjangoEmailVerifier.objects.get_uuid_of_email(self.email_object.email)
+        self.assertRegex(str(uuid_num), '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')

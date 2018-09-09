@@ -1,5 +1,4 @@
 
-import datetime
 from django.test import TestCase
 from django_user_email_extension.models import *
 
@@ -51,8 +50,12 @@ class TestDjangoEmailVerifierModel(TestCase):
         self.assertFalse(self.email_object.verified())
 
     def test_uuid_expire_date(self):
-        expected_expire = datetime.datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=25)
-        actual_expire = self.email_object.uuid_expire_date().replace(microsecond=0, second=0, minute=0, tzinfo=None)
+        expected_expire = self.email_object.date_created.replace(microsecond=0,
+                                                                 second=0,
+                                                                 minute=0) + timedelta(hours=25)
+        actual_expire = self.email_object.uuid_expire_date().replace(microsecond=0,
+                                                                     second=0,
+                                                                     minute=0)
         self.assertEqual(expected_expire, actual_expire)
 
     def test_is_uuid_expired(self):
@@ -63,7 +66,8 @@ class TestUserManager(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(email="test_user_manager@nalkins.cloud")
-        DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
+        DjangoEmailVerifier.objects.create_verification(email=self.user.email,
+                                                        user=self.user)
 
     def test_create_user(self):
         User.objects.create(email="test_create_user@nalkins.cloud")

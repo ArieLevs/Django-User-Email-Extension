@@ -189,13 +189,13 @@ def verify_record(uuid_value):
     try:
         email_ver_object = DjangoEmailVerifier.objects.get(verification_uuid=uuid_value, is_verified=False)
     except DjangoEmailVerifier.DoesNotExist:
-        raise Exception("Error - %s not associated to any email", uuid_value)
+        raise Exception("Error - %s not associated to any email" % uuid_value)
 
-    if email_ver_object.is_uuid_expired:
-        raise Exception("Error - %s expired", uuid_value)
+    if email_ver_object.is_uuid_expired():
+        raise Exception("Error - %s expired" % uuid_value)
 
     # If current object yet verified
-    if not email_ver_object.verified:
+    if not email_ver_object.verified():
         email_ver_object.is_verified = True
         email_ver_object.verified_at = timezone.now()
         email_ver_object.save()

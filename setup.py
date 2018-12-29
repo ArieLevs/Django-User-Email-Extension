@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="django-user-email-extension",
-    version="0.1.11",
+    version="1.0.0",
     author="Arie Lev",
     author_email="levinson.arie@gmail.com",
     description="User model extender for django",
@@ -20,5 +20,6 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Framework :: Django",
+        "Framework :: Django :: 2.0.5",
     ),
 )

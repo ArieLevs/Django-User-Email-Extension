@@ -1,5 +1,9 @@
 Django-User-Email-Extension
 ===========================
+[![](https://img.shields.io/pypi/v/django-user-email-extension.svg)](https://pypi.org/project/django-user-email-extension/)
+[![](https://img.shields.io/pypi/l/django-user-email-extension.svg?colorB=blue)](https://pypi.org/project/django-user-email-extension/)
+[![](https://img.shields.io/pypi/pyversions/django-user-email-extension.svg)](https://pypi.org/project/django-user-email-extension/)
+[![](https://img.shields.io/pypi/djversions/django-user-email-extension.svg)](https://pypi.org/project/django-user-email-extension/)
 
 Django application that extends User module, and provides email verification process.
 

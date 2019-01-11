@@ -3,3 +3,4 @@
 .idea/*
 .DS_Store
 django_user_email_extension/db.sqlite3
+__pycache__/

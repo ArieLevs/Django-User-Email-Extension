@@ -13,13 +13,13 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ArieLevs/Django-User-Email-Extension",
     packages=setuptools.find_packages(),
-    install_requires=['django>=2.0.5'],
+    install_requires=['django>=2.2.0'],
     classifiers=(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Framework :: Django",
-        "Framework :: Django :: 2.0.5",
+        "Framework :: Django :: 2.2",
     ),
 )

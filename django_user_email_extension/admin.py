@@ -28,4 +28,7 @@ class UserAdmin(UserAdmin):
 
 @admin.register(DjangoEmailVerifier)
 class UserAdmin(admin.ModelAdmin):
+    list_display = ('user', 'email', 'is_verified',)
+    list_filter = ('is_verified',)
+    ordering = ('user',)
     pass

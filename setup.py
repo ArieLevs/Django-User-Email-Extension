@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="django-user-email-extension",
-    version="1.0.5",
+    version="1.0.6",
     author="Arie Lev",
     author_email="levinson.arie@gmail.com",
     description="User model extender for django",

@@ -43,13 +43,35 @@ class TestDjangoEmailVerifierModel(TestCase):
         self.email_object = DjangoEmailVerifier.objects.create(user=self.user,
                                                                email=self.user.email)
 
+    def test_to_string(self):
+        """
+        Test DjangoEmailVerifier __str__ function
+        :return:
+        """
+        self.assertEqual(str(self.email_object), 'Email Verification for User: ' + self.user.email)
+
     def test_is_email_verification(self):
+        """
+        Test that required fields is 'user'
+        :return:
+        """
         self.assertEqual(self.email_object.REQUIRED_FIELDS, ['user'])
 
     def test_verified(self):
+        """
+        Test verified() function
+        :return:
+        """
         self.assertFalse(self.email_object.verified())
+        self.email_object.is_verified = True
+        self.assertTrue(self.email_object.verified())
 
     def test_uuid_expire_date(self):
+        """
+        Test email verification expiration,
+        since test.setting.DJANGO_EMAIL_VERIFIER_EXPIRE_TIME value is 25, adding timedelta of 25 hours
+        :return:
+        """
         expected_expire = self.email_object.date_created.replace(microsecond=0,
                                                                  second=0,
                                                                  minute=0) + timedelta(hours=25)

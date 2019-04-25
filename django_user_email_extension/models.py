@@ -166,7 +166,7 @@ class DjangoEmailVerifier(models.Model):
         db_table = 'email_verifications'
 
     def __str__(self):
-        return 'Email Verification for User: ' + self.user.get_username()
+        return 'Email Verification for User: ' + str(self.email)
 
     def verified(self):
         return self.is_verified

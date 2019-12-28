@@ -1,21 +1,23 @@
+from datetime import timedelta
 
 from django.test import TestCase
-from django_user_email_extension.models import *
+
+from django_user_email_extension.models import User, DjangoEmailVerifier
 
 
 class TestUserModel(TestCase):
 
     def setUp(self):
-        self.user = User(email="test@nalkins.cloud",
-                         user_name="arie",
-                         first_name="arie",
-                         last_name="lev",
-                         address="",
-                         city="",
-                         country="",
-                         postal_code=12345,
-                         phone_number="12345678",
-                         linkedin="")
+        self.user = User.objects.create(email="test@nalkins.cloud",
+                                        user_name="arie",
+                                        first_name="arie",
+                                        last_name="lev",
+                                        address="",
+                                        city="",
+                                        country="",
+                                        postal_code=12345,
+                                        phone_number="12345678",
+                                        linkedin="")
 
     def test_is_user(self):
         self.assertEqual(self.user.USERNAME_FIELD, "email")
@@ -107,7 +109,6 @@ class TestDjangoEmailVerifierManger(TestCase):
         DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
 
     def test_create_verification(self):
-
         self.assertEqual(DjangoEmailVerifier.objects.get(email=self.user.email).email,
                          "test_verification_manager@nalkins.cloud")
 

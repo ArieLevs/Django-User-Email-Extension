@@ -1,15 +1,16 @@
-
 from django.contrib import admin
-from django_user_email_extension.models import DjangoEmailVerifier, User
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
+
+from django_user_email_extension.models import DjangoEmailVerifier, User
 
 
 @admin.register(User)
 class UserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'birth_date', 'phone_number', 'language')}),
+        (_('Personal info'),
+         {'fields': ('first_name', 'last_name', 'gender', 'birth_date', 'phone_number', 'language')}),
         (_('Location info'), {'fields': ('address', 'city', 'country', 'postal_code')}),
         (_('Social info'), {'fields': ('linkedin', 'facebook', 'github', 'twitter')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),

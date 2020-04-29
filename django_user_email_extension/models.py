@@ -1,12 +1,12 @@
 import uuid
-from django.utils import timezone
 from datetime import timedelta
-from django.conf import settings
-from django.db import models
-from django.core.mail import send_mail
 
-from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.mail import send_mail
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from django_user_email_extension.validators import phone_number_validator
 
@@ -51,6 +51,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     country = models.CharField(max_length=30, default='', blank=True)
     postal_code = models.IntegerField(blank=True, default=00000)
 
+    USER_GENDER_CHOICES = (
+        ('m', 'Male'),
+        ('f', 'Female'),
+        ('x', 'Not specified'),
+    )
+    gender = models.CharField(choices=USER_GENDER_CHOICES, max_length=1, default='x')
     birth_date = models.DateField(null=True, blank=True)
     phone_number = models.CharField(validators=[phone_number_validator()],
                                     max_length=17,

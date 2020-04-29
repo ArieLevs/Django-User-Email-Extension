@@ -7,8 +7,56 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_countries.fields import CountryField
 
 from django_user_email_extension.validators import phone_number_validator
+
+
+class LocationManager(models.Manager):
+    def create_location(self, address, city, country, postal_code, state=None):
+        """
+
+        :param address: string
+        :param city: string
+        :param country: Country object https://github.com/SmileyChris/django-countries/#the-country-object
+        :param postal_code: integer
+        :param state: string
+        :return: Location object
+        """
+        mandatory_parameters_list = [address, city, country, postal_code]
+        # make sure all non nullable values pass
+        if all(x is not None for x in mandatory_parameters_list):
+            location = self.model(address=address,
+                                  city=city,
+                                  state=state,
+                                  country=country,
+                                  postal_code=postal_code)
+            location.save()
+            return location
+        else:
+            raise ValueError('Mandatory parameter(s) is None {}'.format(mandatory_parameters_list))
+
+
+class Location(models.Model):
+    address = models.TextField(max_length=500)
+    city = models.CharField(max_length=64)
+    state = models.CharField(max_length=64, null=True, blank=True)
+    country = CountryField()
+    postal_code = models.IntegerField()
+
+    class Meta:
+        unique_together = (('address', 'city', 'state', 'country'),)  # Set primary combined key
+        verbose_name = _('location')
+        verbose_name_plural = _('location')
+        db_table = 'location'
+
+    def __str__(self):
+        return 'address: {}\n' \
+               'city: {}\n' \
+               'country: {}\n' \
+               'postal code: {}'.format(self.address, self.city, self.country, self.postal_code)
+
+    objects = LocationManager()
 
 
 class UserManager(BaseUserManager):
@@ -46,10 +94,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('First Name'), max_length=32, blank=True)
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
 
-    address = models.TextField(max_length=500, default='', blank=True)
-    city = models.CharField(max_length=30, default='', blank=True)
-    country = models.CharField(max_length=30, default='', blank=True)
-    postal_code = models.IntegerField(blank=True, default=00000)
+    address = models.ManyToManyField(Location)
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),

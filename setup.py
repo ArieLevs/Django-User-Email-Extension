@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/ArieLevs/Django-User-Email-Extension",
     packages=setuptools.find_packages(),
     install_requires=[
-        'django>=2.2.9',
+        'django>=3.0.0',
         'django-countries==6.1.2',
     ],
     classifiers=(
@@ -23,6 +23,6 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Framework :: Django",
-        "Framework :: Django :: 2.1",
+        "Framework :: Django :: 3.0",
     ),
 )

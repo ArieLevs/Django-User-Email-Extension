@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from django_user_email_extension.models import DjangoEmailVerifier, User, Location
+from django_user_email_extension.models import DjangoEmailVerifier, User, Location, PhoneNumber
 
 
 @admin.register(User)
@@ -40,4 +40,13 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('address', 'city', 'country', 'postal_code')
     list_filter = ('country',)
     ordering = ('address',)
+    pass
+
+
+@admin.register(PhoneNumber)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('number', 'type', 'default', 'verified', 'belongs_to',)
+    list_filter = ('type', 'verified',)
+    search_fields = ('number', 'belongs_to',)
+    ordering = ('number',)
     pass

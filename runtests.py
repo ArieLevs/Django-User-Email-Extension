@@ -14,8 +14,7 @@ def run_tests():
         print("No setting configurations found, exiting")
         exit(1)
 
-    test_output = call_command(
-        'test', 'django_user_email_extension', interactive=True, failfast=False, verbosity=2)
+    test_output = call_command('test', 'django_user_email_extension', interactive=True, failfast=False, verbosity=2)
 
     sys.exit(bool(test_output))
 

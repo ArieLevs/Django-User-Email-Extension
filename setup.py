@@ -16,6 +16,10 @@ setuptools.setup(
     install_requires=[
         'django>=3.0.0',
         'django-countries==6.1.2',
+
+        # needed by django-phonenumber-field
+        'phonenumbers==8.12.2',
+        'django-phonenumber-field==4.0.0',
     ],
     classifiers=(
         "Programming Language :: Python :: 3",

@@ -13,7 +13,6 @@ class TestUserModel(TestCase):
                                              first_name="arie",
                                              last_name="lev",
                                              gender="m",
-                                             phone_number="12345678",
                                              linkedin="")
 
     def test_is_user(self):

@@ -8,8 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
-
-from django_user_email_extension.validators import phone_number_validator
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class LocationManager(models.Manager):
@@ -41,6 +40,7 @@ class Location(models.Model):
     address = models.TextField(max_length=500)
     city = models.CharField(max_length=64)
     state = models.CharField(max_length=64, null=True, blank=True)
+    # uses https://github.com/SmileyChris/django-countries#countryfield
     country = CountryField()
     postal_code = models.IntegerField()
 
@@ -54,6 +54,60 @@ class Location(models.Model):
         return '{}, {}, {}, {}'.format(self.address, self.city, self.postal_code, self.country)
 
     objects = LocationManager()
+
+
+class PhoneNumberManager(models.Manager):
+
+    def get_all_phone_numbers_of_user(self, user):
+        """
+        return all phone numbers associated of user
+        :param user: user object
+        :return: QuerySet of PhoneNumber object, or empty
+        """
+        return self.all().filter(belongs_to=user)
+
+    def get_verified_phone_numbers_of_user(self, user):
+        """
+        return only verified phone numbers of user
+        :param user:
+        :return: QuerySet of PhoneNumber object, or empty
+        """
+        return self.all().filter(belongs_to=user, verified=True)
+
+
+class PhoneNumber(models.Model):
+    NUMBER_TYPES_CHOICES = (
+        ('m', 'Mobile'),
+        ('w', 'Work'),
+        ('h', 'Home'),
+        ('c', 'Car'),
+    )
+
+    # number = models.CharField(primary_key=True, validators=[phone_number_validator()], max_length=17)
+
+    # uses https://github.com/stefanfoulis/django-phonenumber-field
+    number = PhoneNumberField(primary_key=True)
+    type = models.CharField(
+        _('Phone type'),
+        choices=NUMBER_TYPES_CHOICES, max_length=1, default='m')
+    verified = models.BooleanField(
+        _('Verified Status'),
+        default=False,
+        help_text=_('Define if this number have been verified (belongs to user). '),
+    )
+    belongs_to = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                   related_name='phone_number_obj',
+                                   on_delete=models.CASCADE)
+
+    objects = PhoneNumberManager()
+
+    class Meta:
+        verbose_name = _('Phone Number')
+        verbose_name_plural = _('Phone Number')
+        db_table = 'phone_number'
+
+    def __str__(self):
+        return str(self.number)
 
 
 class UserManager(BaseUserManager):
@@ -100,9 +154,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     gender = models.CharField(choices=USER_GENDER_CHOICES, max_length=1, default='x')
     birth_date = models.DateField(null=True, blank=True)
-    phone_number = models.CharField(validators=[phone_number_validator()],
-                                    max_length=17,
-                                    blank=True)
+    default_phone_number = models.OneToOneField(PhoneNumber, on_delete=models.CASCADE, null=True, blank=True)
 
     linkedin = models.URLField(max_length=255, blank=True)
     facebook = models.URLField(max_length=255, blank=True)
@@ -170,63 +222,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_uuid_of_email(self):
         return self.email_verification_obj.get_uuid_of_email(self.email)
 
-
-class PhoneNumberManager(models.Manager):
-    def get_all_phone_numbers_of_user(self, user):
+    def get_default_phone_number(self):
         """
-        return all phone numbers associated of user
-        :param user: user object
-        :return: QuerySet of PhoneNumber object, or empty
+        :return: PhoneNumber object
         """
-        return self.all().filter(belongs_to=user)
-
-    def get_verified_phone_numbers_of_user(self, user):
-        """
-        return only verified phone numbers of user
-        :param user:
-        :return: QuerySet of PhoneNumber object, or empty
-        """
-        return self.all().filter(belongs_to=user, verified=True)
-
-
-class PhoneNumber(models.Model):
-    NUMBER_TYPES_CHOICES = (
-        ('m', 'Mobile'),
-        ('w', 'Work'),
-        ('h', 'Home'),
-        ('c', 'Car'),
-    )
-
-    number = models.CharField(primary_key=True, validators=[phone_number_validator()],
-                              max_length=17,
-                              blank=True)
-    type = models.CharField(
-        _('Phone type'),
-        choices=NUMBER_TYPES_CHOICES, max_length=1, default='m')
-    default = models.BooleanField(
-        _('Is default number'),
-        default=False,
-        unique=True,
-        help_text=_('Define if current number should be default number'),
-    )
-    verified = models.BooleanField(
-        _('Verified Status'),
-        default=False,
-        help_text=_('Define if this number have been verified (belongs to user). '),
-    )
-    belongs_to = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   related_name='phone_number_obj',
-                                   on_delete=models.CASCADE)
-
-    objects = PhoneNumberManager()
-
-    class Meta:
-        verbose_name = _('Phone Number')
-        verbose_name_plural = _('Phone Number')
-        db_table = 'phone_number'
-
-    def __str__(self):
-        return self.number
+        return self.default_phone_number
 
 
 class DjangoEmailVerifierManger(models.Manager):

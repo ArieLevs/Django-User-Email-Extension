@@ -14,6 +14,9 @@ setuptools.setup(
     url="https://github.com/ArieLevs/Django-User-Email-Extension",
     packages=setuptools.find_packages(),
     install_requires=[
+        # pytz is already part of django
+        # 'pytz==2020.1',
+
         'django>=3.0.0',
         'django-countries==6.1.2',
 

@@ -1,6 +1,7 @@
 import uuid
 from datetime import timedelta
 
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.mail import send_mail
@@ -11,49 +12,57 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-class LocationManager(models.Manager):
-    def create_location(self, address, city, country, postal_code, state=None):
+class AddressManager(models.Manager):
+    def create_address(self, address, city, country, postal_code, state=None):
         """
-
         :param address: string
         :param city: string
         :param country: Country object https://github.com/SmileyChris/django-countries/#the-country-object
         :param postal_code: integer
         :param state: string
-        :return: Location object
+        :return: Address object
         """
         mandatory_parameters_list = [address, city, country, postal_code]
         # make sure all non nullable values pass
         if all(x is not None for x in mandatory_parameters_list):
-            location = self.model(address=address,
+            address = self.model(address=address,
                                   city=city,
                                   state=state,
                                   country=country,
                                   postal_code=postal_code)
-            location.save()
-            return location
+            address.save()
+            return address
         else:
             raise ValueError('Mandatory parameter(s) is None {}'.format(mandatory_parameters_list))
 
 
-class Location(models.Model):
-    address = models.TextField(max_length=500)
+class Address(models.Model):
+    TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+
+    street_name = models.TextField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
+    street_number = models.CharField(max_length=64, help_text='Apartment, suite, unit, building, floor, etc.')
     city = models.CharField(max_length=64)
     state = models.CharField(max_length=64, null=True, blank=True)
+
     # uses https://github.com/SmileyChris/django-countries#countryfield
     country = CountryField()
-    postal_code = models.IntegerField()
+    zip_code = models.IntegerField()
+    timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
 
     class Meta:
         unique_together = (('address', 'city', 'state', 'country'),)  # Set primary combined key
-        verbose_name = _('location')
-        verbose_name_plural = _('location')
-        db_table = 'location'
+        verbose_name = _('address')
+        verbose_name_plural = _('address')
+        db_table = 'address'
 
     def __str__(self):
-        return '{}, {}, {}, {}'.format(self.address, self.city, self.postal_code, self.country)
+        return '{}, {}, {}, {}, {}'.format(self.street_name,
+                                           self.street_number,
+                                           self.city,
+                                           self.zip_code,
+                                           self.country)
 
-    objects = LocationManager()
+    objects = AddressManager()
 
 
 class PhoneNumberManager(models.Manager):
@@ -158,7 +167,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('First Name'), max_length=32, blank=True)
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
 
-    address = models.ManyToManyField(Location)
+    address = models.ManyToManyField(Address)
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),

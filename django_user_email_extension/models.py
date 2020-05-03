@@ -61,7 +61,7 @@ class PhoneNumberManager(models.Manager):
     def get_all_phone_numbers_of_user(self, user):
         """
         return all phone numbers associated of user
-        :param user: user object
+        :param user: User object
         :return: QuerySet of PhoneNumber object, or empty
         """
         return self.all().filter(belongs_to=user)
@@ -69,10 +69,23 @@ class PhoneNumberManager(models.Manager):
     def get_verified_phone_numbers_of_user(self, user):
         """
         return only verified phone numbers of user
-        :param user:
-        :return: QuerySet of PhoneNumber object, or empty
+        :param user: User object
+        :return: QuerySet of PhoneNumber object(s), or empty
         """
         return self.all().filter(belongs_to=user, verified=True)
+
+    def get_verified_number_list(self, user):
+        """
+        return a list of verified numbers.
+
+        return example [<PhoneNumber: +41524204242>, <PhoneNumber: +972535251234>]
+        :param user: User object
+        :return: list of PhoneNumberField
+        """
+        result = []
+        for phone_object in self.get_verified_phone_numbers_of_user(user=user):
+            result.append(phone_object.number)
+        return result
 
 
 class PhoneNumber(models.Model):
@@ -209,6 +222,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_verified_phone_numbers(self):
         return self.phone_number_obj.get_verified_phone_numbers_of_user(user=self)
+
+    def get_verified_phone_numbers_list(self):
+        return self.phone_number_obj.get_verified_number_list(user=self)
 
     def create_verification_email(self):
         self.email_verification_obj.create_verification(email=self.email)

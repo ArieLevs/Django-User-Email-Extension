@@ -116,25 +116,28 @@ class TestDjangoEmailVerifierManger(TestCase):
 
 class TestAddressModel(TestCase):
     def setUp(self):
-        self.address_1 = Address.objects.create_address(address="some street 40, apartment 10",
-                                                        city="California",
-                                                        state="CA",
-                                                        country='US',
-                                                        postal_code=123456)
-        self.address_2 = Address.objects.create_address(address="wall street 5, apartment 10",
-                                                        city="New York",
-                                                        state="NY",
-                                                        country='US',
-                                                        postal_code=000000)
+        self.address_1 = Address.objects.create(street_name="98 Columbus Ave",
+                                                street_number="Floor 5, Apartment 15",
+                                                city="California",
+                                                state="CA",
+                                                country='US',
+                                                zip_code=123456)
+        self.address_1.save()
+        self.address_2 = Address.objects.create(street_name='441 Broadway St',
+                                                street_number='Apartment 24',
+                                                city='New York',
+                                                state="NY",
+                                                country='USA',
+                                                zip_code=000000)
+        self.address_2.save()
         self.user = User.objects.create_user(email="test_address@nalkins.cloud")
         self.user.address.add(self.address_1, self.address_2)
+        self.user.save()
 
     def test_address_values(self):
         # current user should have 2 addresses
         self.assertEqual(len(self.user.address.all()), 2)
 
-        country_name = self.user.address.get(address="wall street 5, apartment 10",
-                                             city='New York',
-                                             state="NY",
-                                             country='US').country.name
+        country_name = self.user.address.filter(street_name='441 Broadway St',
+                                                street_number='Apartment 24').first().country.name
         self.assertEqual(country_name, 'United States of America')

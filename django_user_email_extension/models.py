@@ -12,28 +12,28 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-class AddressManager(models.Manager):
-    def create_address(self, address, city, country, postal_code, state=None):
-        """
-        :param address: string
-        :param city: string
-        :param country: Country object https://github.com/SmileyChris/django-countries/#the-country-object
-        :param postal_code: integer
-        :param state: string
-        :return: Address object
-        """
-        mandatory_parameters_list = [address, city, country, postal_code]
-        # make sure all non nullable values pass
-        if all(x is not None for x in mandatory_parameters_list):
-            address = self.model(address=address,
-                                 city=city,
-                                 state=state,
-                                 country=country,
-                                 postal_code=postal_code)
-            address.save()
-            return address
-        else:
-            raise ValueError('Mandatory parameter(s) is None {}'.format(mandatory_parameters_list))
+# class AddressManager(models.Manager):
+#     def create_address(self, address, city, country, postal_code, state=None):
+#         """
+#         :param address: string
+#         :param city: string
+#         :param country: Country object https://github.com/SmileyChris/django-countries/#the-country-object
+#         :param postal_code: integer
+#         :param state: string
+#         :return: Address object
+#         """
+#         mandatory_parameters_list = [address, city, country, postal_code]
+#         # make sure all non nullable values pass
+#         if all(x is not None for x in mandatory_parameters_list):
+#             address = self.model(address=address,
+#                                  city=city,
+#                                  state=state,
+#                                  country=country,
+#                                  postal_code=postal_code)
+#             address.save()
+#             return address
+#         else:
+#             raise ValueError('Mandatory parameter(s) is None {}'.format(mandatory_parameters_list))
 
 
 class Address(models.Model):
@@ -62,7 +62,7 @@ class Address(models.Model):
                                            self.zip_code,
                                            self.country)
 
-    objects = AddressManager()
+    # objects = AddressManager()
 
 
 class PhoneNumberManager(models.Manager):

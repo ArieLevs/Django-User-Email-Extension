@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db.utils import IntegrityError
 from django.test import TestCase
 
 from django_user_email_extension.models import User, DjangoEmailVerifier, Address
@@ -118,26 +119,75 @@ class TestAddressModel(TestCase):
     def setUp(self):
         self.address_1 = Address.objects.create(street_name="98 Columbus Ave",
                                                 street_number="Floor 5, Apartment 15",
-                                                city="California",
-                                                state="CA",
+                                                city="San Francisco",
+                                                state="California",
                                                 country='US',
                                                 zip_code=123456)
-        self.address_1.save()
+        # apartment 24
         self.address_2 = Address.objects.create(street_name='441 Broadway St',
                                                 street_number='Apartment 24',
                                                 city='New York',
                                                 state="NY",
                                                 country='USA',
                                                 zip_code=000000)
-        self.address_2.save()
+        # apartment 13
+        self.address_3 = Address.objects.create(street_name='441 Broadway St',
+                                                street_number='Apartment 13',
+                                                city='New York',
+                                                state="NY",
+                                                country='USA',
+                                                zip_code=000000,
+                                                timezone='US/Eastern')
+
+    def test_address_model(self):
+        # should be 2 addresses with street '441 Broadway St'
+        self.assertEqual(len(Address.objects.filter(street_name='441 Broadway St')), 2)
+
+        # test string prints
+        self.assertEqual(str(self.address_1),
+                         '98 Columbus Ave Floor 5, Apartment 15 San Francisco, California, 123456, US')
+        print(self.address_1)
+
+    def test_unique_address(self):
+        # This is should be single here due to this bug https://code.djangoproject.com/ticket/21540
+
+        # test unique constraint ('street_name', 'street_number', 'city', 'state', 'country')
+        with self.assertRaises(IntegrityError):
+            Address.objects.create(street_name='441 Broadway St',
+                                   street_number='Apartment 13',
+                                   city='New York',
+                                   state="NY",
+                                   country='USA',
+                                   zip_code=000000,
+                                   timezone='US/Eastern')
+
+    def test_country_field(self):
+        # test country field https://github.com/SmileyChris/django-countries#countryfield
+
+        country_field_object = Address.objects.filter(street_name='441 Broadway St',
+                                                      street_number='Apartment 24').first().country
+        self.assertEqual(country_field_object.name, 'United States of America')
+        self.assertEqual(country_field_object.code, 'US')
+        self.assertEqual(country_field_object.alpha3, 'USA')
+
+
+class TestUserAddressInteraction(TestCase):
+    def setUp(self):
+        self.address_1 = Address.objects.create(street_name="98 Columbus Ave",
+                                                street_number="Floor 5, Apartment 15",
+                                                city="San Francisco",
+                                                state="California",
+                                                country='US',
+                                                zip_code=123456)
+        self.address_2 = Address.objects.create(street_name='441 Broadway St',
+                                                street_number='Apartment 24',
+                                                city='New York',
+                                                state="NY",
+                                                country='USA',
+                                                zip_code=000000)
         self.user = User.objects.create_user(email="test_address@nalkins.cloud")
         self.user.address.add(self.address_1, self.address_2)
-        self.user.save()
 
-    def test_address_values(self):
+    def test_user_addresses(self):
         # current user should have 2 addresses
         self.assertEqual(len(self.user.address.all()), 2)
-
-        country_name = self.user.address.filter(street_name='441 Broadway St',
-                                                street_number='Apartment 24').first().country.name
-        self.assertEqual(country_name, 'United States of America')

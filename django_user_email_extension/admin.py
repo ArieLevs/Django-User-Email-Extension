@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from django_user_email_extension.models import DjangoEmailVerifier, User, Location, PhoneNumber
+from django_user_email_extension.models import DjangoEmailVerifier, User, Address, PhoneNumber
 
 
 @admin.register(User)
@@ -11,7 +11,7 @@ class UserAdmin(UserAdmin):
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'),
          {'fields': ('first_name', 'last_name', 'gender', 'birth_date', 'default_phone_number', 'language')}),
-        (_('Location info'), {'fields': ['address']}),
+        (_('Address info'), {'fields': ['street_name', 'street_number', 'city', 'state', 'country', 'zip_code']}),
         (_('Social info'), {'fields': ('linkedin', 'facebook', 'github', 'twitter')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )
@@ -35,11 +35,11 @@ class UserAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Location)
+@admin.register(Address)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('address', 'city', 'country', 'postal_code')
+    list_display = ('street_name', 'street_number', 'city', 'state', 'country', 'zip_code')
     list_filter = ('country',)
-    ordering = ('address',)
+    ordering = ('country', 'city', 'street_name',)
     pass
 
 

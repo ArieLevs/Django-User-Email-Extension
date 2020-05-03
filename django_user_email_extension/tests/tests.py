@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 
-from django_user_email_extension.models import User, DjangoEmailVerifier, Location
+from django_user_email_extension.models import User, DjangoEmailVerifier, Address
 
 
 class TestUserModel(TestCase):
@@ -114,22 +114,22 @@ class TestDjangoEmailVerifierManger(TestCase):
         self.assertRegex(str(uuid_num), '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
 
 
-class TestLocationModel(TestCase):
+class TestAddressModel(TestCase):
     def setUp(self):
-        self.location_1 = Location.objects.create_location(address="some street 40, apartment 10",
-                                                           city="California",
-                                                           state="CA",
-                                                           country='US',
-                                                           postal_code=123456)
-        self.location_2 = Location.objects.create_location(address="wall street 5, apartment 10",
-                                                           city="New York",
-                                                           state="NY",
-                                                           country='US',
-                                                           postal_code=000000)
-        self.user = User.objects.create_user(email="test_location@nalkins.cloud")
-        self.user.address.add(self.location_1, self.location_2)
+        self.address_1 = Address.objects.create_address(address="some street 40, apartment 10",
+                                                        city="California",
+                                                        state="CA",
+                                                        country='US',
+                                                        postal_code=123456)
+        self.address_2 = Address.objects.create_address(address="wall street 5, apartment 10",
+                                                        city="New York",
+                                                        state="NY",
+                                                        country='US',
+                                                        postal_code=000000)
+        self.user = User.objects.create_user(email="test_address@nalkins.cloud")
+        self.user.address.add(self.address_1, self.address_2)
 
-    def test_location_values(self):
+    def test_address_values(self):
         # current user should have 2 addresses
         self.assertEqual(len(self.user.address.all()), 2)
 

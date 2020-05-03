@@ -26,10 +26,10 @@ class AddressManager(models.Manager):
         # make sure all non nullable values pass
         if all(x is not None for x in mandatory_parameters_list):
             address = self.model(address=address,
-                                  city=city,
-                                  state=state,
-                                  country=country,
-                                  postal_code=postal_code)
+                                 city=city,
+                                 state=state,
+                                 country=country,
+                                 postal_code=postal_code)
             address.save()
             return address
         else:
@@ -50,7 +50,7 @@ class Address(models.Model):
     timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
 
     class Meta:
-        unique_together = (('address', 'city', 'state', 'country'),)  # Set primary combined key
+        unique_together = (('street_name', 'street_number', 'city', 'state', 'country'),)  # Set primary combined key
         verbose_name = _('address')
         verbose_name_plural = _('address')
         db_table = 'address'

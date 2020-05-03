@@ -100,7 +100,9 @@ class PhoneNumber(models.Model):
     )
     belongs_to = models.ForeignKey(settings.AUTH_USER_MODEL,
                                    related_name='phone_number_obj',
-                                   on_delete=models.CASCADE)
+                                   on_delete=models.CASCADE,
+                                   null=True,
+                                   blank=True)
 
     objects = PhoneNumberManager()
 
@@ -111,6 +113,23 @@ class PhoneNumber(models.Model):
 
     def __str__(self):
         return str(self.number)
+
+    def get_mobile_number_carrier(self):
+        """
+        get numbers mobile carrier, return empty string is not found.
+        :return: string
+        """
+        from phonenumbers import carrier, parse
+        number = parse(str(self.number))
+        return carrier.name_for_number(number, "en")
+
+    def get_number_location_description(self):
+        """
+        return a text description of a PhoneNumber object, return empty string is not found.
+        :return: string
+        """
+        from phonenumbers import geocoder, parse
+        return geocoder.description_for_number(parse(str(self.number)), "en")
 
 
 class UserManager(BaseUserManager):

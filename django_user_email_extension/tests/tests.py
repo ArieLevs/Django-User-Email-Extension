@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from django_user_email_extension.models import User, DjangoEmailVerifier, Address
+from django_user_email_extension.models import User, DjangoEmailVerifier, Address, PhoneNumber
 
 
 class TestUserModel(TestCase):
@@ -146,7 +146,6 @@ class TestAddressModel(TestCase):
         # test string prints
         self.assertEqual(str(self.address_1),
                          '98 Columbus Ave Floor 5, Apartment 15 San Francisco, California, 123456, US')
-        print(self.address_1)
 
     def test_unique_address(self):
         # This is should be single here due to this bug https://code.djangoproject.com/ticket/21540
@@ -191,3 +190,25 @@ class TestUserAddressInteraction(TestCase):
     def test_user_addresses(self):
         # current user should have 2 addresses
         self.assertEqual(len(self.user.address.all()), 2)
+
+
+class TestPhoneNumberModel(TestCase):
+    def setUp(self):
+        self.number_1 = PhoneNumber.objects.create(number='+1-212-509-5555',
+                                                   type='m',
+                                                   verified=False)
+
+        self.number_1.full_clean()
+        self.number_2 = PhoneNumber.objects.create(number='+972-50-123-4567',
+                                                   type='m',
+                                                   verified=False)
+        self.number_2.full_clean()
+
+    def test_model(self):
+
+        # test get_mobile_number_carrier
+        self.assertEqual('', self.number_1.get_mobile_number_carrier())
+        self.assertEqual('Pelephone', self.number_2.get_mobile_number_carrier())
+
+        # test get_number_location_description
+        self.assertEqual('New York, NY', self.number_1.get_number_location_description())

@@ -12,30 +12,6 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-# class AddressManager(models.Manager):
-#     def create_address(self, address, city, country, postal_code, state=None):
-#         """
-#         :param address: string
-#         :param city: string
-#         :param country: Country object https://github.com/SmileyChris/django-countries/#the-country-object
-#         :param postal_code: integer
-#         :param state: string
-#         :return: Address object
-#         """
-#         mandatory_parameters_list = [address, city, country, postal_code]
-#         # make sure all non nullable values pass
-#         if all(x is not None for x in mandatory_parameters_list):
-#             address = self.model(address=address,
-#                                  city=city,
-#                                  state=state,
-#                                  country=country,
-#                                  postal_code=postal_code)
-#             address.save()
-#             return address
-#         else:
-#             raise ValueError('Mandatory parameter(s) is None {}'.format(mandatory_parameters_list))
-
-
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
@@ -56,13 +32,18 @@ class Address(models.Model):
         db_table = 'address'
 
     def __str__(self):
+        if self.state:
+            return '{} {} {}, {}, {}, {}'.format(self.street_name,
+                                                 self.street_number,
+                                                 self.city,
+                                                 self.state,
+                                                 self.zip_code,
+                                                 self.country)
         return '{}, {}, {}, {}, {}'.format(self.street_name,
                                            self.street_number,
                                            self.city,
                                            self.zip_code,
                                            self.country)
-
-    # objects = AddressManager()
 
 
 class PhoneNumberManager(models.Manager):

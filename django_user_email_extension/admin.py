@@ -11,7 +11,7 @@ class UserAdmin(UserAdmin):
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'),
          {'fields': ('first_name', 'last_name', 'gender', 'birth_date', 'default_phone_number', 'language')}),
-        (_('Address info'), {'fields': ['street_name', 'street_number', 'city', 'state', 'country', 'zip_code']}),
+        (_('Address info'), {'fields': ['address']}),
         (_('Social info'), {'fields': ('linkedin', 'facebook', 'github', 'twitter')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )

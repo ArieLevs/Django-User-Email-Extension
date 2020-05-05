@@ -19,6 +19,9 @@ INSTALLED_APPS = [
     'django_user_email_extension',
     # ...
 ]
+# if set then users age will be validated for minimal age (in years)
+USER_MINIMAL_AGE = int(os.environ.get('USER_MINIMAL_AGE', None))
+
 
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

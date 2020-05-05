@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 from django_user_email_extension.languages import LANGUAGES
+from django_user_email_extension.validators import validate_users_min_age
 
 
 class Address(models.Model):
@@ -168,7 +169,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('First Name'), max_length=32, blank=True)
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
 
-    address = models.ManyToManyField(_('Address'), Address)
+    address = models.ManyToManyField(Address, verbose_name=_('Address'))
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),
@@ -176,9 +177,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('x', 'Not specified'),
     )
     gender = models.CharField(_('Gender'), choices=USER_GENDER_CHOICES, max_length=1, default='x')
-    birth_date = models.DateField(_('Birth Date'), null=True, blank=True)
-    default_phone_number = models.OneToOneField(_('Default Contact Number'), PhoneNumber, on_delete=models.CASCADE,
-                                                null=True, blank=True)
+    birth_date = models.DateField(_('Birth Date'), null=True, blank=True, validators=[validate_users_min_age])
+    default_phone_number = models.OneToOneField(PhoneNumber, on_delete=models.CASCADE,
+                                                null=True, blank=True, verbose_name=_('Default Contact Number'))
 
     linkedin = models.URLField(max_length=255, blank=True)
     facebook = models.URLField(max_length=255, blank=True)

@@ -10,12 +10,13 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
+from django_user_email_extension.languages import LANGUAGES
 
 
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
-    street_name = models.TextField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
+    street_name = models.CharField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
     street_number = models.CharField(max_length=64, help_text='Apartment, suite, unit, building, floor, etc.')
     city = models.CharField(max_length=64)
     state = models.CharField(max_length=64, null=True, blank=True)
@@ -167,16 +168,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('First Name'), max_length=32, blank=True)
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
 
-    address = models.ManyToManyField(Address)
+    address = models.ManyToManyField(_('Address'), Address)
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),
         ('f', 'Female'),
         ('x', 'Not specified'),
     )
-    gender = models.CharField(choices=USER_GENDER_CHOICES, max_length=1, default='x')
-    birth_date = models.DateField(null=True, blank=True)
-    default_phone_number = models.OneToOneField(PhoneNumber, on_delete=models.CASCADE, null=True, blank=True)
+    gender = models.CharField(_('Gender'), choices=USER_GENDER_CHOICES, max_length=1, default='x')
+    birth_date = models.DateField(_('Birth Date'), null=True, blank=True)
+    default_phone_number = models.OneToOneField(_('Default Contact Number'), PhoneNumber, on_delete=models.CASCADE,
+                                                null=True, blank=True)
 
     linkedin = models.URLField(max_length=255, blank=True)
     facebook = models.URLField(max_length=255, blank=True)
@@ -184,7 +186,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     twitter = models.URLField(max_length=255, blank=True)
 
     registration_ip = models.GenericIPAddressField('Registered From', null=True)
-    language = models.CharField(_('Users Language'), max_length=2, null=False, default='EN')
+    language = models.CharField(_('Users Language'), choices=LANGUAGES, max_length=2, default='en')
 
     is_staff = models.BooleanField(
         _('staff status'),
@@ -196,10 +198,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_('Define if this user should be treated as active. '),
     )
-    date_created = models.DateTimeField('Date Created', auto_now_add=True, blank=True)
+    date_created = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True)
     last_update_date = models.DateTimeField(auto_now=True)
     last_login = models.DateTimeField(default=None, blank=True, null=True)
-    last_login_ip = models.GenericIPAddressField('Logged in from', default=None, blank=True, null=True)
+    last_login_ip = models.GenericIPAddressField(_('Logged in from'), default=None, blank=True, null=True)
 
     objects = UserManager()
 

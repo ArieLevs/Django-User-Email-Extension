@@ -5,13 +5,14 @@ import pytz
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 from django_user_email_extension.languages import LANGUAGES
-from django_user_email_extension.validators import validate_users_min_age
+from django_user_email_extension.validators import validate_users_min_age, validate_alphabetic_string
 
 
 class Address(models.Model):
@@ -164,10 +165,10 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, primary_key=True)
+    email = models.EmailField(unique=True, primary_key=True, validators=[validate_email])
     user_name = models.CharField(_('User Name'), max_length=128, blank=True)
-    first_name = models.CharField(_('First Name'), max_length=32, blank=True)
-    last_name = models.CharField(_('Last Name'), max_length=32, blank=True)
+    first_name = models.CharField(_('First Name'), max_length=32, blank=True, validators=[validate_alphabetic_string])
+    last_name = models.CharField(_('Last Name'), max_length=32, blank=True, validators=[validate_alphabetic_string])
 
     address = models.ManyToManyField(Address, verbose_name=_('Address'))
 

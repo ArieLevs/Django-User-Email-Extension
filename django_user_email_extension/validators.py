@@ -24,3 +24,13 @@ def validate_users_min_age(birth_date):
             # in case birth date i bigger, then the date x years ago
             if birth_date > x_years_ago:
                 raise ValidationError(message='Age must be at least {} years old.'.format(minimal_age))
+
+
+def validate_alphabetic_string(string):
+    """
+    just use https://docs.python.org/3/library/stdtypes.html#str.isalpha
+    :param string: string to validate
+    :return: boolean id string is alphabetic
+    """
+    if not string.isalpha():
+        raise ValidationError(message='Must be Alphabet string.')

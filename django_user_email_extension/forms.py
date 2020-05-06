@@ -1,7 +1,26 @@
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, Select, DateInput
+from django.forms import ModelForm, TextInput, Select, DateInput, NumberInput
 
-from django_user_email_extension.models import User
+
+from django_user_email_extension.models import User, Address
+
+
+class AddressForm(ModelForm):
+    class Meta:
+        model = Address
+        exclude = ['timezone']
+        widgets = {
+            'street_name': TextInput(attrs={'class': 'form-control'}),
+            'street_number': TextInput(attrs={'class': 'form-control'}),
+            'city': TextInput(attrs={'class': 'form-control'}),
+            'state': TextInput(attrs={'class': 'form-control'}),
+            'country': Select(attrs={'class': 'form-control'}),
+            'zip_code': NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        # empty clean function so model will not block a user of attempt to add an already existing address
+        return self.cleaned_data
 
 
 class UserProfileForm(ModelForm):

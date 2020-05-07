@@ -1,7 +1,77 @@
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, Select, DateInput
+from django.forms import Form, ModelForm, TextInput, Select, DateInput, NumberInput, CharField, RadioSelect, ChoiceField
+from phonenumbers import is_valid_number, parse, NumberParseException
 
-from django_user_email_extension.models import User
+from django_user_email_extension.models import User, Address
+
+
+class TokenForm(Form):
+    token = CharField(
+        widget=TextInput(attrs={'class': 'form-control'}))
+
+
+class PhoneNumberVerificationForm(Form):
+    """
+    bootstrap ready form
+    """
+    country_code = CharField(widget=TextInput(attrs={'class': 'form-control'}),
+                             required=True, help_text='Valid county code, eg +1')
+    phone_number = CharField(widget=TextInput(attrs={'class': 'form-control'}))
+    confirmation_type = ChoiceField(
+        choices=[('sms', 'Send me a text')],
+        # initial=sms will set checked radio button to 'sms' value
+        widget=RadioSelect(attrs={'class': 'form-check-input'}), initial='sms', required=True)
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
+        try:
+            int(phone_number)
+        except ValueError:
+            self.add_error('phone_number', 'Phone number should contain numbers only')
+        return phone_number
+
+    def clean_country_code(self):
+        country_code = self.cleaned_data['country_code']
+        if not country_code.startswith('+'):
+            country_code = '+' + country_code
+        return country_code
+
+    def clean(self):
+        data = self.cleaned_data
+
+        phone_number = data['country_code'] + data['phone_number']
+        try:
+            phone_number = parse(phone_number, None)
+            if not is_valid_number(phone_number):
+                self.add_error('phone_number', 'Invalid phone number')
+            else:
+                # both values are actually cleaned here
+                self.cleaned_data['country_code'] = phone_number.country_code
+                self.cleaned_data['phone_number'] = phone_number.national_number
+        except NumberParseException as e:
+            self.add_error('phone_number', e)
+
+
+class AddressForm(ModelForm):
+    """
+    bootstrap ready form
+    """
+
+    class Meta:
+        model = Address
+        exclude = ['timezone']
+        widgets = {
+            'street_name': TextInput(attrs={'class': 'form-control'}),
+            'street_number': TextInput(attrs={'class': 'form-control'}),
+            'city': TextInput(attrs={'class': 'form-control'}),
+            'state': TextInput(attrs={'class': 'form-control'}),
+            'country': Select(attrs={'class': 'form-control'}),
+            'zip_code': NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        # empty clean function so model will not block a user of attempt to add an already existing address
+        return self.cleaned_data
 
 
 class UserProfileForm(ModelForm):

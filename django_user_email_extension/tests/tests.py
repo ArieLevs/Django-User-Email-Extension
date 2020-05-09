@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from django_user_email_extension.models import User, DjangoEmailVerifier, Address, PhoneNumber
+from django_user_email_extension.models import User, DjangoEmailVerifier, Address, UserPhoneNumber
 
 
 class TestUserModel(TestCase):
@@ -194,18 +194,14 @@ class TestUserAddressInteraction(TestCase):
 
 class TestPhoneNumberModel(TestCase):
     def setUp(self):
-        self.number_1 = PhoneNumber.objects.create(number='+1-212-509-5555',
-                                                   type='m',
-                                                   verified=False)
+        self.user = User.objects.create_user(email="test_phone_number@nalkins.cloud")
+        self.number_1 = UserPhoneNumber.objects.create(number='+1-212-509-5555', owner=self.user)
 
         self.number_1.full_clean()
-        self.number_2 = PhoneNumber.objects.create(number='+972-50-123-4567',
-                                                   type='m',
-                                                   verified=False)
+        self.number_2 = UserPhoneNumber.objects.create(number='+972-50-123-4567', owner=self.user)
         self.number_2.full_clean()
 
     def test_model(self):
-
         # test get_mobile_number_carrier
         self.assertEqual('', self.number_1.get_mobile_number_carrier())
         self.assertEqual('Pelephone', self.number_2.get_mobile_number_carrier())

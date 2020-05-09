@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import Form, ModelForm, TextInput, Select, DateInput, NumberInput, CharField, RadioSelect, ChoiceField
-from phonenumbers import is_valid_number, parse, NumberParseException
+from phonenumbers import is_valid_number, parse, NumberParseException, PhoneNumber
 
 from django_user_email_extension.models import User, Address
 
@@ -22,11 +22,24 @@ class PhoneNumberVerificationForm(Form):
         # initial=sms will set checked radio button to 'sms' value
         widget=RadioSelect(attrs={'class': 'form-check-input'}), initial='sms', required=True)
 
+    # override init function, so form will also be able to get a 'phone' key,
+    def __init__(self, *args, **kwargs):
+        # get PhoneNumberField object value passed to form if any
+        phone_number_instance = kwargs.pop("phone", None)
+
+        if isinstance(phone_number_instance, PhoneNumber):
+            # set initial
+            kwargs.update(initial={
+                # 'field': 'value'
+                'country_code': phone_number_instance.country_code,
+                'phone_number': phone_number_instance.national_number,
+            })
+
+        super(PhoneNumberVerificationForm, self).__init__(*args, **kwargs)
+
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
-        try:
-            int(phone_number)
-        except ValueError:
+        if not phone_number.isdigit():
             self.add_error('phone_number', 'Phone number should contain numbers only')
         return phone_number
 
@@ -47,7 +60,7 @@ class PhoneNumberVerificationForm(Form):
             else:
                 # both values are actually cleaned here
                 self.cleaned_data['country_code'] = phone_number.country_code
-                self.cleaned_data['phone_number'] = phone_number.national_number
+                self.cleaned_data['phone_number'] = phone_number
         except NumberParseException as e:
             self.add_error('phone_number', e)
 
@@ -81,12 +94,10 @@ class UserProfileForm(ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'default_phone_number',
-                  'gender', 'birth_date', 'language']
+        fields = ['first_name', 'last_name', 'gender', 'birth_date', 'language']
         widgets = {
             'first_name': TextInput(attrs={'class': 'form-control'}),
             'last_name': TextInput(attrs={'class': 'form-control'}),
-            'default_phone_number': Select(attrs={'class': 'form-control'}),
             'gender': Select(attrs={'class': 'form-control'}),
             'birth_date': DateInput(attrs={
                 'class': 'form-control datetimepicker-input',

@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
+
 from django_user_email_extension.languages import LANGUAGES
 from django_user_email_extension.validators import validate_users_min_age, validate_alphabetic_string
 
@@ -57,7 +58,7 @@ class PhoneNumberManager(models.Manager):
         :param user: User object
         :return: QuerySet of PhoneNumber object, or empty
         """
-        return self.all().filter(belongs_to=user)
+        return self.all().filter(owner=user)
 
     def get_verified_phone_numbers_of_user(self, user):
         """
@@ -65,7 +66,7 @@ class PhoneNumberManager(models.Manager):
         :param user: User object
         :return: QuerySet of PhoneNumber object(s), or empty
         """
-        return self.all().filter(belongs_to=user, verified=True)
+        return self.all().filter(owner=user, verified=True)
 
     def get_verified_number_list(self, user):
         """
@@ -81,38 +82,35 @@ class PhoneNumberManager(models.Manager):
         return result
 
 
-class PhoneNumber(models.Model):
-    NUMBER_TYPES_CHOICES = (
-        ('m', 'Mobile'),
-        ('w', 'Work'),
-        ('h', 'Home'),
-        ('c', 'Car'),
-    )
-
-    # number = models.CharField(primary_key=True, validators=[phone_number_validator()], max_length=17)
-
+class UserPhoneNumber(models.Model):
     # uses https://github.com/stefanfoulis/django-phonenumber-field
-    number = PhoneNumberField(primary_key=True)
-    type = models.CharField(
-        _('Phone type'),
-        choices=NUMBER_TYPES_CHOICES, max_length=1, default='m')
+    number = PhoneNumberField()
+
+    # TODO override save method to allow exactly single 'verified=True' value per 'number'
     verified = models.BooleanField(
         _('Verified Status'),
         default=False,
-        help_text=_('Define if this number have been verified (belongs to user). '),
+        help_text=_('Define if this number have been verified.'),
     )
-    belongs_to = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   related_name='phone_number_obj',
-                                   on_delete=models.CASCADE,
-                                   null=True,
-                                   blank=True)
+    # TODO override save method to allow exactly single 'is_default=True' value per 'owner'
+    is_default = models.BooleanField(
+        _('Default Status'),
+        default=False,
+        help_text=_('Define if this number is users default number.'),
+    )
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              related_name='phone_number_obj',
+                              on_delete=models.CASCADE)
 
     objects = PhoneNumberManager()
 
     class Meta:
-        verbose_name = _('Phone Number')
-        verbose_name_plural = _('Phone Number')
-        db_table = 'phone_number'
+        db_table = 'user_phone_numbers'
+        constraints = [
+            models.UniqueConstraint(fields=['number', 'owner'], name='unique_users_phone_number')
+        ]
+        verbose_name = _('User Phone Numbers')
+        verbose_name_plural = _('User Phone Numbers')
 
     def __str__(self):
         return str(self.number)
@@ -179,8 +177,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     gender = models.CharField(_('Gender'), choices=USER_GENDER_CHOICES, max_length=1, default='x')
     birth_date = models.DateField(_('Birth Date'), null=True, blank=True, validators=[validate_users_min_age])
-    default_phone_number = models.OneToOneField(PhoneNumber, on_delete=models.CASCADE,
-                                                null=True, blank=True, verbose_name=_('Default Contact Number'))
 
     linkedin = models.URLField(max_length=255, blank=True)
     facebook = models.URLField(max_length=255, blank=True)

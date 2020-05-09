@@ -86,13 +86,11 @@ class UserPhoneNumber(models.Model):
     # uses https://github.com/stefanfoulis/django-phonenumber-field
     number = PhoneNumberField()
 
-    # TODO override save method to allow exactly single 'verified=True' value per 'number'
     verified = models.BooleanField(
         _('Verified Status'),
         default=False,
         help_text=_('Define if this number have been verified.'),
     )
-    # TODO override save method to allow exactly single 'is_default=True' value per 'owner'
     is_default = models.BooleanField(
         _('Default Status'),
         default=False,
@@ -111,6 +109,19 @@ class UserPhoneNumber(models.Model):
         ]
         verbose_name = _('User Phone Numbers')
         verbose_name_plural = _('User Phone Numbers')
+
+    def save(self, *args, **kwargs):
+        # check there is no other same number(s) (from another owner) which are also verified,
+        # if there are any, set all of them to False, so there is a unique number with `verified=True`,
+        # allow exactly single 'verified=True' value per 'number'
+        UserPhoneNumber.objects.filter(number=self.number, verified=True).update(verified=False)
+
+        # check are no multiple numbers, for the same owner (user) which are `is_default=True`,
+        # if there are any, set all of them to False, so there is a unique number (per user) with `is_default=True`.
+        # allow exactly single 'is_default=True' value per 'owner'
+        UserPhoneNumber.objects.filter(owner=self.owner, is_default=True).update(is_default=False)
+
+        super(UserPhoneNumber, self).save(*args, **kwargs)
 
     def __str__(self):
         return str(self.number)

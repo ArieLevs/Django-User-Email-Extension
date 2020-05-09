@@ -1,5 +1,5 @@
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 
 import pytz
 from django.conf import settings
@@ -28,6 +28,8 @@ class Address(models.Model):
     country = CountryField()
     zip_code = models.IntegerField()
     timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
+
+    created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
 
     class Meta:
         unique_together = (('street_name', 'street_number', 'city', 'state', 'country'),)  # Set primary combined key
@@ -91,6 +93,7 @@ class UserPhoneNumber(models.Model):
         default=False,
         help_text=_('Define if this number have been verified.'),
     )
+    __original_verified = None
     is_default = models.BooleanField(
         _('Default Status'),
         default=False,
@@ -99,6 +102,8 @@ class UserPhoneNumber(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               related_name='phone_number_obj',
                               on_delete=models.CASCADE)
+    created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, null=True, blank=True)
+    verified_status_updated_at = models.DateTimeField(null=True, editable=False)
 
     objects = PhoneNumberManager()
 
@@ -110,7 +115,16 @@ class UserPhoneNumber(models.Model):
         verbose_name = _('User Phone Numbers')
         verbose_name_plural = _('User Phone Numbers')
 
+    def __init__(self, *args, **kwargs):
+        super(UserPhoneNumber, self).__init__(*args, **kwargs)
+        self.__original_verified = self.verified
+
     def save(self, *args, **kwargs):
+        # check if there is a change is the verified field
+        if self.verified != self.__original_verified:
+            # update timestamp
+            self.verified_status_updated_at = datetime.now(tz=timezone.utc)
+
         # check there is no other same number(s) (from another owner) which are also verified,
         # if there are any, set all of them to False, so there is a unique number with `verified=True`,
         # allow exactly single 'verified=True' value per 'number'
@@ -128,6 +142,8 @@ class UserPhoneNumber(models.Model):
         if self.is_default:
             UserPhoneNumber.objects.filter(owner=self.owner, is_default=True).update(is_default=False)
 
+        # save new verified state to __original_verified for future checks
+        self.__original_verified = self.verified
         super(UserPhoneNumber, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -214,9 +230,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_('Define if this user should be treated as active. '),
     )
-    date_created = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True)
-    last_update_date = models.DateTimeField(auto_now=True)
-    last_login = models.DateTimeField(default=None, blank=True, null=True)
+    date_created = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
+    last_update_date = models.DateTimeField(auto_now=True, editable=False)
+    last_login = models.DateTimeField(default=None, blank=True, null=True, editable=False)
     last_login_ip = models.GenericIPAddressField(_('Logged in from'), default=None, blank=True, null=True)
 
     objects = UserManager()

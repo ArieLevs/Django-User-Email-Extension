@@ -114,12 +114,19 @@ class UserPhoneNumber(models.Model):
         # check there is no other same number(s) (from another owner) which are also verified,
         # if there are any, set all of them to False, so there is a unique number with `verified=True`,
         # allow exactly single 'verified=True' value per 'number'
-        UserPhoneNumber.objects.filter(number=self.number, verified=True).update(verified=False)
+        if self.verified:
+            UserPhoneNumber.objects.filter(number=self.number, verified=True).update(verified=False)
+
+            # if current owner still does not have any default number (first time a number is saved),
+            # this under verified if statement since only verified number should be able default.
+            if not UserPhoneNumber.objects.filter(owner=self.owner, is_default=True):
+                self.is_default = True
 
         # check are no multiple numbers, for the same owner (user) which are `is_default=True`,
         # if there are any, set all of them to False, so there is a unique number (per user) with `is_default=True`.
         # allow exactly single 'is_default=True' value per 'owner'
-        UserPhoneNumber.objects.filter(owner=self.owner, is_default=True).update(is_default=False)
+        if self.is_default:
+            UserPhoneNumber.objects.filter(owner=self.owner, is_default=True).update(is_default=False)
 
         super(UserPhoneNumber, self).save(*args, **kwargs)
 

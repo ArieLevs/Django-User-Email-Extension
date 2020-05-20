@@ -19,9 +19,12 @@ from django_user_email_extension.validators import validate_users_min_age, valid
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
+
     street_name = models.CharField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
     street_number = models.CharField(max_length=64, help_text='Apartment, suite, unit, building, floor, etc.')
-    city = models.CharField(max_length=64)
+    city = models.CharField(max_length=128)
     state = models.CharField(max_length=64, null=True, blank=True)
 
     # uses https://github.com/SmileyChris/django-countries#countryfield

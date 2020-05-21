@@ -4,6 +4,7 @@ from datetime import timedelta, datetime, timezone
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.validators import MinLengthValidator
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db import models
@@ -19,11 +20,11 @@ from django_user_email_extension.validators import validate_users_min_age, valid
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
-    first_name = models.CharField(max_length=256, blank=True)
-    last_name = models.CharField(max_length=256, blank=True)
+    first_name = models.CharField(max_length=128, validators=[MinLengthValidator(2)])
+    last_name = models.CharField(max_length=128, validators=[MinLengthValidator(2)])
 
     street_name = models.CharField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
-    street_number = models.CharField(max_length=64, help_text='Apartment, suite, unit, building, floor, etc.')
+    street_number = models.CharField(max_length=128, help_text='Apartment, suite, unit, building, floor, etc.')
     city = models.CharField(max_length=128)
     state = models.CharField(max_length=64, null=True, blank=True)
 
@@ -35,7 +36,6 @@ class Address(models.Model):
     created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
 
     class Meta:
-        unique_together = (('street_name', 'street_number', 'city', 'state', 'country'),)  # Set primary combined key
         verbose_name = _('address')
         verbose_name_plural = _('address')
         db_table = 'address'
@@ -206,6 +206,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True, validators=[validate_alphabetic_string])
 
     address = models.ManyToManyField(Address, verbose_name=_('Address'))
+    default_address = models.ForeignKey(
+        Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    default_billing_address = models.ForeignKey(
+        Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),

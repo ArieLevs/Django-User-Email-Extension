@@ -38,8 +38,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('street_name', 'street_number', 'city', 'state', 'country', 'zip_code')
-    list_filter = ('country',)
+    list_display = ('first_name', 'last_name', 'street_name', 'street_number', 'city', 'state', 'country', 'zip_code')
+    list_filter = ('first_name', 'last_name', 'country',)
     ordering = ('country', 'city', 'street_name',)
     readonly_fields = ('created_at',)
     pass

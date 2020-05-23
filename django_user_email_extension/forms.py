@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.forms import Form, ModelForm, TextInput, Select, DateInput, NumberInput, CharField, RadioSelect, ChoiceField
 from phonenumbers import is_valid_number, parse, NumberParseException, PhoneNumber
 
-from django_user_email_extension.models import User, Address
+from django_user_email_extension.models import User, UserAddress
 
 
 class TokenForm(Form):
@@ -65,13 +65,13 @@ class PhoneNumberVerificationForm(Form):
             self.add_error('phone_number', e)
 
 
-class AddressForm(ModelForm):
+class UserAddressForm(ModelForm):
     """
     bootstrap ready form
     """
 
     class Meta:
-        model = Address
+        model = UserAddress
         exclude = ['timezone']
         widgets = {
             'first_name': TextInput(attrs={'class': 'form-control'}),
@@ -82,7 +82,15 @@ class AddressForm(ModelForm):
             'state': TextInput(attrs={'class': 'form-control'}),
             'country': Select(attrs={'class': 'form-control'}),
             'zip_code': NumberInput(attrs={'class': 'form-control'}),
+            'phone_number': Select(attrs={'class': 'form-control'}),
+            'notes': TextInput(attrs={'class': 'form-control'}),
         }
+
+        fields = [
+            'first_name', 'last_name',
+            'street_name', 'street_number', 'city', 'state', 'country', 'zip_code',
+            'phone_number', 'notes',
+        ]
 
     def clean(self):
         # empty clean function so model will not block a user of attempt to add an already existing address

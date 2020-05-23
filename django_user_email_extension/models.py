@@ -1,13 +1,13 @@
+import re
 import uuid
 from datetime import timedelta, datetime, timezone
-import re
 
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.core.validators import MinLengthValidator
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.core.validators import MinLengthValidator
 from django.core.validators import validate_email
 from django.db import models
 from django.utils import timezone
@@ -17,64 +17,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from django_user_email_extension.languages import LANGUAGES
 from django_user_email_extension.validators import validate_users_min_age, validate_alphabetic_string
-
 from . import ZIP_CODES_REGEX
-
-
-class Address(models.Model):
-    TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
-
-    first_name = models.CharField(_("First name"), max_length=128, validators=[MinLengthValidator(2)])
-    last_name = models.CharField(_("Last name"), max_length=128, validators=[MinLengthValidator(2)])
-
-    street_name = models.CharField(_("Street name"), max_length=128, help_text='Street address, P.O. box, company name, c/o')
-    street_number = models.CharField(_("Street number"), max_length=128, help_text='Apartment, suite, unit, building, floor, etc.')
-    city = models.CharField(_("City"), max_length=128)
-    state = models.CharField(_("State/County"), max_length=128, null=True, blank=True)
-
-    # uses https://github.com/SmileyChris/django-countries#countryfield
-    country = CountryField(_('Country'))
-    zip_code = models.IntegerField(_('Zip code'))
-    timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
-
-    created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
-
-    class Meta:
-        verbose_name = _('Address')
-        verbose_name_plural = _('Addresses')
-        db_table = 'address'
-
-    def __str__(self):
-        if self.state:
-            return '{} {} {}, {}, {}, {}'.format(self.street_name,
-                                                 self.street_number,
-                                                 self.city,
-                                                 self.state,
-                                                 self.zip_code,
-                                                 self.country)
-        return '{}, {}, {}, {}, {}'.format(self.street_name,
-                                           self.street_number,
-                                           self.city,
-                                           self.zip_code,
-                                           self.country)
-
-    def clean(self):
-        # validate zip code is valid for country
-        self.validate_zip_code_is_valid_country()
-
-    def validate_zip_code_is_valid_country(self):
-        """
-        validate zip code is valid code for input country code
-        """
-        country_code = self.country
-
-        # cast integer zip code to string
-        zip_code = str(self.zip_code)
-        regex = ZIP_CODES_REGEX.get(country_code, None)
-
-        # Validate postcode against regex for the country if available
-        if regex and not re.match(regex, zip_code):
-            raise ValidationError(message='Zip Code \'{}\' is not valid for {}'.format(zip_code, self.country.name))
 
 
 class PhoneNumberManager(models.Manager):
@@ -192,6 +135,125 @@ class UserPhoneNumber(models.Model):
         return geocoder.description_for_number(parse(str(self.number)), "en")
 
 
+class AbstractAddress(models.Model):
+    TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+
+    first_name = models.CharField(_("First name"), max_length=128, validators=[MinLengthValidator(2)])
+    last_name = models.CharField(_("Last name"), max_length=128, validators=[MinLengthValidator(2)])
+
+    street_name = models.CharField(_("Street name"), max_length=128,
+                                   help_text='Street address, P.O. box, company name, c/o')
+    street_number = models.CharField(_("Street number"), max_length=128,
+                                     help_text='Apartment, suite, unit, building, floor, etc.')
+    city = models.CharField(_("City"), max_length=128)
+    state = models.CharField(_("State/County"), max_length=128, null=True, blank=True)
+
+    # uses https://github.com/SmileyChris/django-countries#countryfield
+    country = CountryField(_('Country'))
+    zip_code = models.IntegerField(_('Zip code'))
+    timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
+
+    created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+        verbose_name = _('Address')
+        verbose_name_plural = _('Addresses')
+
+    def __str__(self):
+        if self.state:
+            return '{} {} {}, {}, {}, {}'.format(self.street_name,
+                                                 self.street_number,
+                                                 self.city,
+                                                 self.state,
+                                                 self.zip_code,
+                                                 self.country)
+        return '{}, {}, {}, {}, {}'.format(self.street_name,
+                                           self.street_number,
+                                           self.city,
+                                           self.zip_code,
+                                           self.country)
+
+    def clean(self):
+        # validate zip code is valid for country
+        self.validate_zip_code_is_valid_country()
+
+    def validate_zip_code_is_valid_country(self):
+        """
+        validate zip code is valid code for input country code
+        """
+        country_code = self.country
+
+        # cast integer zip code to string
+        zip_code = str(self.zip_code)
+        regex = ZIP_CODES_REGEX.get(country_code, None)
+
+        # Validate postcode against regex for the country if available
+        if regex and not re.match(regex, zip_code):
+            raise ValidationError(message='Zip Code \'{}\' is not valid for {}'.format(zip_code, self.country.name))
+
+
+class UserAddressManager(models.Manager):
+    def get_all_user_addresses(self, user):
+        return self.all().filter(user=user)
+
+
+class UserAddress(AbstractAddress):
+    """
+    users address,
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='addresses',
+        on_delete=models.CASCADE,
+        verbose_name=_('User'))
+
+    default_address = models.BooleanField(
+        _('Default address'), default=False,
+        help_text=_('Define if this address should be default one')
+    )
+
+    default_billing_address = models.BooleanField(
+        _('Default billing address'), default=False,
+        help_text=_('Define if this should be default billing address')
+    )
+
+    phone_number = models.ForeignKey(
+        UserPhoneNumber,
+        related_name='phone_number',
+        on_delete=models.CASCADE,
+        verbose_name=_('Phone Number'))
+
+    notes = models.TextField(
+        blank=True, verbose_name=_('Instructions'),
+        help_text=_("Add anything you need here to let us know."))
+
+    objects = UserAddressManager()
+
+    class Meta:
+        db_table = 'user_addresses'
+        verbose_name = _("User address")
+        verbose_name_plural = _("User addresses")
+
+    def save(self, *args, **kwargs):
+        # allow exactly single 'default_address=True' value per 'user'
+        if self.default_address:
+            UserAddress.objects.filter(user=self.user, default_address=True).update(default_address=False)
+
+            # if current user still does not have any default address (first time an address is saved).
+            if not UserAddress.objects.filter(user=self.user, default_address=True):
+                self.default_address = True
+
+        # allow exactly single 'default_billing_address=True' value per 'user'
+        if self.default_billing_address:
+            UserAddress.objects.filter(
+                user=self.user, default_billing_address=True
+            ).update(default_billing_address=False)
+
+        super(UserAddress, self).save(*args, **kwargs)
+
+
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
         """
@@ -226,14 +288,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_name = models.CharField(_('User Name'), max_length=128, blank=True)
     first_name = models.CharField(_('First Name'), max_length=32, blank=True, validators=[validate_alphabetic_string])
     last_name = models.CharField(_('Last Name'), max_length=32, blank=True, validators=[validate_alphabetic_string])
-
-    address = models.ManyToManyField(Address, verbose_name=_('Address'))
-    default_address = models.ForeignKey(
-        Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    default_billing_address = models.ForeignKey(
-        Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
-    )
 
     USER_GENDER_CHOICES = (
         ('m', 'Male'),
@@ -289,7 +343,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.last_name
 
     def get_user_addresses(self):
-        return self.address.all()
+        return self.addresses.get_all_user_addresses(user=self)
 
     def get_all_phone_numbers(self):
         return self.phone_number_obj.get_all_phone_numbers_of_user(user=self)

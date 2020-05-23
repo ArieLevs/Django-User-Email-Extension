@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from django_user_email_extension.models import DjangoEmailVerifier, User, Address, UserPhoneNumber
+from django_user_email_extension.models import DjangoEmailVerifier, User, UserAddress, UserPhoneNumber
 
 
 @admin.register(User)
@@ -36,9 +36,12 @@ class UserAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Address)
+@admin.register(UserAddress)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'street_name', 'street_number', 'city', 'state', 'country', 'zip_code')
+    list_display = (
+        'user', 'first_name', 'last_name',
+        'street_name', 'street_number', 'city', 'state', 'country', 'zip_code',
+        'default_address', 'default_billing_address', 'phone_number')
     list_filter = ('first_name', 'last_name', 'country',)
     ordering = ('country', 'city', 'street_name',)
     readonly_fields = ('created_at',)

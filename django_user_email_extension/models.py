@@ -59,11 +59,6 @@ class Address(models.Model):
                                            self.country)
 
     def clean(self):
-        # remove (strip) whitespace
-        for field in ['first_name', 'last_name', 'street_name', 'street_number', 'city', 'state']:
-            if self.__dict__[field]:
-                self.__dict__[field] = self.__dict__[field].strip()
-
         # validate zip code is valid for country
         self.validate_zip_code_is_valid_country()
 

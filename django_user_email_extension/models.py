@@ -51,6 +51,18 @@ class PhoneNumberManager(models.Manager):
             result.append(phone_object.number)
         return result
 
+    def get_default_number_of_user(self, user):
+        """
+        return users default number,
+        there can be 0 or max 1 defaults
+        :param user: User object
+        :return: UserPhoneNumber object or none
+        """
+        try:
+            return self.get(owner=user, is_default=True)
+        except UserPhoneNumber.DoesNotExist:
+            return None
+
 
 class UserPhoneNumber(models.Model):
     # uses https://github.com/stefanfoulis/django-phonenumber-field

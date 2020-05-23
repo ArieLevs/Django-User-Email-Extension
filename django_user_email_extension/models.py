@@ -1,10 +1,12 @@
 import uuid
 from datetime import timedelta, datetime, timezone
+import re
 
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.validators import MinLengthValidator
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db import models
@@ -16,6 +18,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django_user_email_extension.languages import LANGUAGES
 from django_user_email_extension.validators import validate_users_min_age, validate_alphabetic_string
 
+from . import ZIP_CODES_REGEX
+
 
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
@@ -26,7 +30,7 @@ class Address(models.Model):
     street_name = models.CharField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
     street_number = models.CharField(max_length=128, help_text='Apartment, suite, unit, building, floor, etc.')
     city = models.CharField(max_length=128)
-    state = models.CharField(max_length=64, null=True, blank=True)
+    state = models.CharField(max_length=128, null=True, blank=True)
 
     # uses https://github.com/SmileyChris/django-countries#countryfield
     country = CountryField()
@@ -53,6 +57,29 @@ class Address(models.Model):
                                            self.city,
                                            self.zip_code,
                                            self.country)
+
+    def clean(self):
+        # remove (strip) whitespace
+        for field in ['first_name', 'last_name', 'street_name', 'street_number', 'city', 'state']:
+            if self.__dict__[field]:
+                self.__dict__[field] = self.__dict__[field].strip()
+
+        # validate zip code is valid for country
+        self.validate_zip_code_is_valid_country()
+
+    def validate_zip_code_is_valid_country(self):
+        """
+        validate zip code is valid code for input country code
+        """
+        country_code = self.country
+
+        # cast integer zip code to string
+        zip_code = str(self.zip_code)
+        regex = ZIP_CODES_REGEX.get(country_code, None)
+
+        # Validate postcode against regex for the country if available
+        if regex and not re.match(regex, zip_code):
+            raise ValidationError(message='Zip Code \'{}\' is not valid for {}'.format(zip_code, self.country.name))
 
 
 class PhoneNumberManager(models.Manager):

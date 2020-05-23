@@ -24,24 +24,24 @@ from . import ZIP_CODES_REGEX
 class Address(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
-    first_name = models.CharField(max_length=128, validators=[MinLengthValidator(2)])
-    last_name = models.CharField(max_length=128, validators=[MinLengthValidator(2)])
+    first_name = models.CharField(_("First name"), max_length=128, validators=[MinLengthValidator(2)])
+    last_name = models.CharField(_("Last name"), max_length=128, validators=[MinLengthValidator(2)])
 
-    street_name = models.CharField(max_length=128, help_text='Street address, P.O. box, company name, c/o')
-    street_number = models.CharField(max_length=128, help_text='Apartment, suite, unit, building, floor, etc.')
-    city = models.CharField(max_length=128)
-    state = models.CharField(max_length=128, null=True, blank=True)
+    street_name = models.CharField(_("Street name"), max_length=128, help_text='Street address, P.O. box, company name, c/o')
+    street_number = models.CharField(_("Street number"), max_length=128, help_text='Apartment, suite, unit, building, floor, etc.')
+    city = models.CharField(_("City"), max_length=128)
+    state = models.CharField(_("State/County"), max_length=128, null=True, blank=True)
 
     # uses https://github.com/SmileyChris/django-countries#countryfield
-    country = CountryField()
-    zip_code = models.IntegerField()
+    country = CountryField(_('Country'))
+    zip_code = models.IntegerField(_('Zip code'))
     timezone = models.CharField(max_length=32, choices=TIMEZONES, default='UTC')
 
     created_at = models.DateTimeField(_('Date Created'), auto_now_add=True, blank=True, editable=False)
 
     class Meta:
-        verbose_name = _('address')
-        verbose_name_plural = _('address')
+        verbose_name = _('Address')
+        verbose_name_plural = _('Addresses')
         db_table = 'address'
 
     def __str__(self):

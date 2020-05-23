@@ -236,6 +236,13 @@ class UserAddress(AbstractAddress):
         verbose_name = _("User address")
         verbose_name_plural = _("User addresses")
 
+    def clean(self):
+        if hasattr(settings, 'ENFORCE_USER_ADDRESS_VERIFIED_PHONE'):
+            if settings.ENFORCE_USER_ADDRESS_VERIFIED_PHONE:
+                # make sure saved phone number has been verified verified
+                if not UserPhoneNumber.objects.get(owner=self.user, verified=True):
+                    raise ValidationError(message='Phone number {} must be verified first'.format(self.phone_number))
+
     def save(self, *args, **kwargs):
         # allow exactly single 'default_address=True' value per 'user'
         if self.default_address:

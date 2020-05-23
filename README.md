@@ -22,6 +22,8 @@ INSTALLED_APPS = [
 # if set then users age will be validated for minimal age (in years)
 USER_MINIMAL_AGE = int(os.environ.get('USER_MINIMAL_AGE', None))
 
+# if set, an used address canot be save with non verified phone number
+ENFORCE_USER_ADDRESS_VERIFIED_PHONE = int(os.environ.get('ENFORCE_USER_ADDRESS_VERIFIED_PHONE', False)) 
 
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

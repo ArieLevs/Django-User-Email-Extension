@@ -24,12 +24,12 @@ setuptools.setup(
         'phonenumbers==8.12.2',
         'django-phonenumber-field==4.0.0',
     ],
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Framework :: Django",
         "Framework :: Django :: 3.0",
-    ),
+    ],
 )

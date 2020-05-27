@@ -92,6 +92,11 @@ class UserAddressForm(ModelForm):
             'phone_number', 'notes',
         ]
 
+    # this form should also get 'user' instance
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.user = user
+
     def clean(self):
         # empty clean function so model will not block a user of attempt to add an already existing address
         return self.cleaned_data

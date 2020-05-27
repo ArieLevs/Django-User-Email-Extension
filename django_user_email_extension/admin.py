@@ -9,9 +9,7 @@ from django_user_email_extension.models import DjangoEmailVerifier, User, UserAd
 class UserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal info'),
-         {'fields': ('first_name', 'last_name', 'gender', 'birth_date', 'language')}),
-        (_('Address info'), {'fields': ['address']}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'gender', 'birth_date', 'language')}),
         (_('Social info'), {'fields': ('linkedin', 'facebook', 'github', 'twitter')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )

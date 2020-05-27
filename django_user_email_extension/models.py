@@ -251,9 +251,10 @@ class UserAddress(AbstractAddress):
     def clean(self):
         if hasattr(settings, 'ENFORCE_USER_ADDRESS_VERIFIED_PHONE'):
             if settings.ENFORCE_USER_ADDRESS_VERIFIED_PHONE:
-                # make sure saved phone number has been verified verified
-                if not UserPhoneNumber.objects.get(owner=self.user, verified=True):
-                    raise ValidationError(message='Phone number {} must be verified first'.format(self.phone_number))
+                # make sure saved phone number has been verified, and belong to current user saved
+                users_verified_numbers = UserPhoneNumber.objects.get_verified_phone_numbers_of_user(user=self.user)
+                if self.phone_number not in users_verified_numbers:
+                    raise ValidationError(message='{} has not been verified.'.format(self.phone_number))
 
     def save(self, *args, **kwargs):
         # allow exactly single 'default_address=True' value per 'user'
@@ -313,6 +314,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('f', 'Female'),
         ('x', 'Not specified'),
     )
+
     gender = models.CharField(_('Gender'), choices=USER_GENDER_CHOICES, max_length=1, default='x')
     birth_date = models.DateField(_('Birth Date'), null=True, blank=True, validators=[validate_users_min_age])
 

@@ -97,6 +97,10 @@ class UserAddressForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.instance.user = user
 
+        # since 'phone_number' field is a foreign key to UserPhoneNumber model, for will allow to choose from all users,
+        # make sure the 'phone_number' will have only current users phone numbers
+        self.fields['phone_number'].queryset = user.get_all_phone_numbers()
+
     def clean(self):
         # empty clean function so model will not block a user of attempt to add an already existing address
         return self.cleaned_data

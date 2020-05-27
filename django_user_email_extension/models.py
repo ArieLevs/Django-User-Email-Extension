@@ -251,8 +251,13 @@ class UserAddress(AbstractAddress):
     def clean(self):
         if hasattr(settings, 'ENFORCE_USER_ADDRESS_VERIFIED_PHONE'):
             if settings.ENFORCE_USER_ADDRESS_VERIFIED_PHONE:
+                # try getting self.user, since UserAddress can get created from admin without user reference
+                try:
+                    users_verified_numbers = UserPhoneNumber.objects.get_verified_phone_numbers_of_user(user=self.user)
+                except User.DoesNotExist as e:
+                    raise ValidationError(message='{}'.format(e))
+
                 # make sure saved phone number has been verified, and belong to current user saved
-                users_verified_numbers = UserPhoneNumber.objects.get_verified_phone_numbers_of_user(user=self.user)
                 if self.phone_number not in users_verified_numbers:
                     raise ValidationError(message='{} has not been verified.'.format(self.phone_number))
 
@@ -386,12 +391,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_uuid_of_email(self):
         return self.email_verification_obj.get_uuid_of_email(self.email)
-
-    def get_default_phone_number(self):
-        """
-        :return: PhoneNumber object
-        """
-        return self.default_phone_number
 
 
 class DjangoEmailVerifierManger(models.Manager):

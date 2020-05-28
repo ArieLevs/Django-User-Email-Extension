@@ -22,21 +22,6 @@ class PhoneNumberVerificationForm(Form):
         # initial=sms will set checked radio button to 'sms' value
         widget=RadioSelect(attrs={'class': 'form-check-input'}), initial='sms', required=True)
 
-    # override init function, so form will also be able to get a 'phone' key,
-    def __init__(self, *args, **kwargs):
-        # get PhoneNumberField object value passed to form if any
-        phone_number_instance = kwargs.pop("phone", None)
-
-        if isinstance(phone_number_instance, PhoneNumber):
-            # set initial
-            kwargs.update(initial={
-                # 'field': 'value'
-                'country_code': phone_number_instance.country_code,
-                'phone_number': phone_number_instance.national_number,
-            })
-
-        super(PhoneNumberVerificationForm, self).__init__(*args, **kwargs)
-
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
         if not phone_number.isdigit():

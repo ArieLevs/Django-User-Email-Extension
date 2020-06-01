@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import Form, ModelForm, TextInput, Select, DateInput, NumberInput, CharField, RadioSelect, ChoiceField
-from phonenumbers import is_valid_number, parse, NumberParseException, PhoneNumber
+from phonenumbers import is_valid_number, parse, NumberParseException
 
 from django_user_email_extension.models import User, UserAddress
 
@@ -12,6 +12,8 @@ class TokenForm(Form):
 
 class PhoneNumberVerificationForm(Form):
     """
+    although this is a Form and not a ModelForm, an instance (PhoneNumber) is passed to init,
+    as this form used to create phone numbers, but used separated fields
     bootstrap ready form
     """
     country_code = CharField(widget=TextInput(attrs={'class': 'form-control'}),
@@ -21,6 +23,10 @@ class PhoneNumberVerificationForm(Form):
         choices=[('sms', 'Send me a text')],
         # initial=sms will set checked radio button to 'sms' value
         widget=RadioSelect(attrs={'class': 'form-check-input'}), initial='sms', required=True)
+
+    # this form should also get 'instance'
+    def __init__(self, instance, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']

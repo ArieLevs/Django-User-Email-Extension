@@ -460,25 +460,20 @@ class DjangoEmailVerifier(models.Model):
     def is_uuid_expired(self):
         return timezone.now() >= self.uuid_expire_date()
 
+    def verify_record(self):
+        if self.is_uuid_expired():
+            raise Exception("UUID {} expired".format(self.verification_uuid))
 
-def verify_record(uuid_value):
-    # If input UUID exist in the db
-    try:
-        email_ver_object = DjangoEmailVerifier.objects.get(verification_uuid=uuid_value, is_verified=False)
-    except DjangoEmailVerifier.DoesNotExist:
-        raise Exception("Error - %s not associated to any email" % uuid_value)
+        # If current object yet verified
+        if not self.verified():
+            self.is_verified = True
+            self.verified_at = timezone.now()
+            self.save()
+        else:
+            raise Exception("email {} already verified".format(self.email))
 
-    if email_ver_object.is_uuid_expired():
-        raise Exception("Error - %s expired" % uuid_value)
+        # Set account is active status
+        self.user.is_active = True
+        self.user.save()
 
-    # If current object yet verified
-    if not email_ver_object.verified():
-        email_ver_object.is_verified = True
-        email_ver_object.verified_at = timezone.now()
-        email_ver_object.save()
-
-    # Set account is active status
-    email_ver_object.user.is_active = True
-    email_ver_object.user.save()
-
-    return True
+        return True

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="django-user-email-extension",
-    version="2.0.1",
+    version="2.1.0",
     author="Arie Lev",
     author_email="levinson.arie@gmail.com",
     description="User model extender for django",
@@ -17,7 +17,7 @@ setuptools.setup(
         # pytz is already part of django
         # 'pytz==2020.1',
 
-        'django>=3.0.3',
+        'django>=3.0.7',
         'django-countries==6.1.2',
 
         # needed by django-phonenumber-field

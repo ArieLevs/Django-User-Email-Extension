@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from django_user_email_extension.models import User, DjangoEmailVerifier, Address, UserPhoneNumber
+from django_user_email_extension.models import User, DjangoEmailVerifier, UserAddress, UserPhoneNumber
 
 
 class TestUserModel(TestCase):
@@ -117,31 +117,44 @@ class TestDjangoEmailVerifierManger(TestCase):
 
 class TestAddressModel(TestCase):
     def setUp(self):
-        self.address_1 = Address.objects.create(street_name="98 Columbus Ave",
-                                                street_number="Floor 5, Apartment 15",
-                                                city="San Francisco",
-                                                state="California",
-                                                country='US',
-                                                zip_code=123456)
+        number_1 = '+1-212-509-5555'
+        self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
+
+        self.address_1 = UserAddress.objects.create(
+            user=self.user_alice,
+            street_name="98 Columbus Ave",
+            street_number="Floor 5, Apartment 15",
+            city="San Francisco",
+            state="California",
+            country='US',
+            zip_code=123456,
+            phone_number=self.number_1)
         # apartment 24
-        self.address_2 = Address.objects.create(street_name='441 Broadway St',
-                                                street_number='Apartment 24',
-                                                city='New York',
-                                                state="NY",
-                                                country='USA',
-                                                zip_code=000000)
+        self.address_2 = UserAddress.objects.create(
+            user=self.user_alice,
+            street_name='441 Broadway St',
+            street_number='Apartment 24',
+            city='New York',
+            state="NY",
+            country='USA',
+            zip_code=000000,
+            phone_number=self.number_1)
         # apartment 13
-        self.address_3 = Address.objects.create(street_name='441 Broadway St',
-                                                street_number='Apartment 13',
-                                                city='New York',
-                                                state="NY",
-                                                country='USA',
-                                                zip_code=000000,
-                                                timezone='US/Eastern')
+        self.address_3 = UserAddress.objects.create(
+            user=self.user_alice,
+            street_name='441 Broadway St',
+            street_number='Apartment 13',
+            city='New York',
+            state="NY",
+            country='USA',
+            zip_code=000000,
+            timezone='US/Eastern',
+            phone_number=self.number_1)
 
     def test_address_model(self):
         # should be 2 addresses with street '441 Broadway St'
-        self.assertEqual(len(Address.objects.filter(street_name='441 Broadway St')), 2)
+        self.assertEqual(len(UserAddress.objects.filter(street_name='441 Broadway St')), 2)
 
         # test string prints
         self.assertEqual(str(self.address_1),
@@ -152,19 +165,19 @@ class TestAddressModel(TestCase):
 
         # test unique constraint ('street_name', 'street_number', 'city', 'state', 'country')
         with self.assertRaises(IntegrityError):
-            Address.objects.create(street_name='441 Broadway St',
-                                   street_number='Apartment 13',
-                                   city='New York',
-                                   state="NY",
-                                   country='USA',
-                                   zip_code=000000,
-                                   timezone='US/Eastern')
+            UserAddress.objects.create(street_name='441 Broadway St',
+                                       street_number='Apartment 13',
+                                       city='New York',
+                                       state="NY",
+                                       country='USA',
+                                       zip_code=000000,
+                                       timezone='US/Eastern')
 
     def test_country_field(self):
         # test country field https://github.com/SmileyChris/django-countries#countryfield
 
-        country_field_object = Address.objects.filter(street_name='441 Broadway St',
-                                                      street_number='Apartment 24').first().country
+        country_field_object = UserAddress.objects.filter(street_name='441 Broadway St',
+                                                          street_number='Apartment 24').first().country
         self.assertEqual(country_field_object.name, 'United States of America')
         self.assertEqual(country_field_object.code, 'US')
         self.assertEqual(country_field_object.alpha3, 'USA')
@@ -172,34 +185,56 @@ class TestAddressModel(TestCase):
 
 class TestUserAddressInteraction(TestCase):
     def setUp(self):
-        self.address_1 = Address.objects.create(street_name="98 Columbus Ave",
-                                                street_number="Floor 5, Apartment 15",
-                                                city="San Francisco",
-                                                state="California",
-                                                country='US',
-                                                zip_code=123456)
-        self.address_2 = Address.objects.create(street_name='441 Broadway St',
-                                                street_number='Apartment 24',
-                                                city='New York',
-                                                state="NY",
-                                                country='USA',
-                                                zip_code=000000)
-        self.user = User.objects.create_user(email="test_address@nalkins.cloud")
-        self.user.address.add(self.address_1, self.address_2)
+        number_1 = '+1-212-509-5555'
+        self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
+
+        self.address_1 = UserAddress.objects.create(
+            user=self.user_alice,
+            street_name="98 Columbus Ave",
+            street_number="Floor 5, Apartment 15",
+            city="San Francisco",
+            state="California",
+            country='US',
+            zip_code=123456,
+            phone_number=self.number_1)
+        self.address_2 = UserAddress.objects.create(
+            user=self.user_alice,
+            street_name='441 Broadway St',
+            street_number='Apartment 24',
+            city='New York',
+            state="NY",
+            country='USA',
+            zip_code=000000,
+            phone_number=self.number_1)
 
     def test_user_addresses(self):
         # current user should have 2 addresses
-        self.assertEqual(len(self.user.address.all()), 2)
+        self.assertEqual(len(UserAddress.objects.get_all_user_addresses(self.user_alice)), 2)
 
 
 class TestPhoneNumberModel(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="test_phone_number@nalkins.cloud")
-        self.number_1 = UserPhoneNumber.objects.create(number='+1-212-509-5555', owner=self.user)
+        number_1 = '+1-212-509-5555'
+        number_2 = '+972-50-123-4567'
+        self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.user_bob = User.objects.create_user(email="test_phone_number_2@nalkins.cloud")
+
+        self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
+        self.number_2 = UserPhoneNumber.objects.create(number=number_2, owner=self.user_bob)
+        # add to user bob, number that is exactly as user alice has
+        self.number_3 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_bob)
 
         self.number_1.full_clean()
-        self.number_2 = UserPhoneNumber.objects.create(number='+972-50-123-4567', owner=self.user)
         self.number_2.full_clean()
+        self.number_3.full_clean()
+
+        # number 4 is invalid, will be checked later
+        self.number_4 = UserPhoneNumber.objects.create(number='+972123456789', owner=self.user_alice)
+        # self.number_4.full_clean()
+
+        self.number_5 = UserPhoneNumber.objects.create(number='+972555512345', owner=self.user_alice)
+        self.number_5.full_clean()
 
     def test_model(self):
         # test get_mobile_number_carrier
@@ -208,3 +243,29 @@ class TestPhoneNumberModel(TestCase):
 
         # test get_number_location_description
         self.assertEqual('New York, NY', self.number_1.get_number_location_description())
+
+        # user alice now verified her phone
+        self.number_1.verified = True
+        self.number_1.is_default = True
+        self.number_1.save()
+
+        # this number should automatically set default
+        self.assertEqual(True, self.number_1.is_default)
+
+        self.number_5.is_default = True
+        self.number_5.save()
+
+        # first number should now be 'is_default=False' since number_5 is, and they are both owned by same user
+        self.assertEqual(True, self.number_5.is_default)
+        # refresh value from database first
+        self.number_1.refresh_from_db()
+        self.assertEqual(False, self.number_1.is_default)
+
+        # set number_3 as 'verified=True', so 'number_1' will be auto set to False (they are same number)
+        self.number_3.verified = True
+        self.number_3.save()
+
+        # refresh value from database first
+        self.number_1.refresh_from_db()
+        self.assertEqual(False, self.number_1.verified)
+        self.assertEqual(True, self.number_3.verified)

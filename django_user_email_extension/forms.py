@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.forms import Form, ModelForm, TextInput, Select, DateInput, NumberInput, CharField, RadioSelect, ChoiceField
 from phonenumbers import is_valid_number, parse, NumberParseException
 
-from django_user_email_extension.models import User, UserAddress
+from django_user_email_extension.models import User, UserAddress, DjangoEmailVerifier
 
 
 class TokenForm(Form):
@@ -138,3 +138,15 @@ class UserProfileForm(ModelForm):
         if birth_date is None:
             raise ValidationError(message='Birth Date must be set')
         return birth_date
+
+
+class VerificationUUIDForm(ModelForm):
+    class Meta:
+        model = DjangoEmailVerifier
+        fields = ['email']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def full_clean(self):
+        return super().full_clean()

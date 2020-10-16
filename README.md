@@ -90,7 +90,7 @@ ver_uuid.verify_record()
 
 The confirmation uuid can be sent as part of the body for example:
 ```python
-body = 'Follow this link to verify your account: https://nalkins.cloud' + \
-       '%s' % reverse('verify_account',
-                      kwargs={'uuid': str(user_object.get_uuid_of_email())})
+body = 'Follow this link to verify your account: https://nalkins.cloud{}'.format(
+    reverse('verify_account', kwargs={'verification_uuid': str(user_object.get_uuid_of_email())})
+)
 ```

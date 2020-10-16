@@ -15,6 +15,7 @@ class TestUserModel(TestCase):
                                              last_name="lev",
                                              gender="m",
                                              linkedin="")
+        self.user.save()
 
     def test_is_user(self):
         self.assertEqual(self.user.USERNAME_FIELD, "email")
@@ -39,6 +40,7 @@ class TestDjangoEmailVerifierModel(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(email="test@nalkins.cloud")
+        self.user.save()
         self.email_object = DjangoEmailVerifier.objects.create(user=self.user,
                                                                email=self.user.email)
 
@@ -87,6 +89,7 @@ class TestUserManager(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(email="test_user_manager@nalkins.cloud")
+        self.user.save()
         DjangoEmailVerifier.objects.create_verification(email=self.user.email,
                                                         user=self.user)
 
@@ -103,6 +106,7 @@ class TestDjangoEmailVerifierManger(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(email="test_verification_manager@nalkins.cloud")
+        self.user.save()
         DjangoEmailVerifier.objects.create_verification(email=self.user.email, user=self.user)
 
     def test_create_verification(self):
@@ -119,6 +123,7 @@ class TestAddressModel(TestCase):
     def setUp(self):
         number_1 = '+1-212-509-5555'
         self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.user_alice.save()
         self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
 
         self.address_1 = UserAddress.objects.create(
@@ -187,6 +192,7 @@ class TestUserAddressInteraction(TestCase):
     def setUp(self):
         number_1 = '+1-212-509-5555'
         self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.user_alice.save()
         self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
 
         self.address_1 = UserAddress.objects.create(
@@ -218,7 +224,9 @@ class TestPhoneNumberModel(TestCase):
         number_1 = '+1-212-509-5555'
         number_2 = '+972-50-123-4567'
         self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
+        self.user_alice.save()
         self.user_bob = User.objects.create_user(email="test_phone_number_2@nalkins.cloud")
+        self.user_bob.save()
 
         self.number_1 = UserPhoneNumber.objects.create(number=number_1, owner=self.user_alice)
         self.number_2 = UserPhoneNumber.objects.create(number=number_2, owner=self.user_bob)

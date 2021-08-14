@@ -1,0 +1,17 @@
+## This is a file used by CI workflow
+## must be a valid YAML file
+
+unitTestCommand: "python runtests.py" # Command to run unit tests
+unitTestPath: "."                         # Location of unit tests init file from workspace - django-user-email-extension/tests.py
+
+isNexusPypi: false
+pypiRepoUrl: https://pypi.org/simple # Global is https://pypi.org/simple
+
+ifPrivateDockerRepo: false                 # if true, do not use global docker.io
+
+## If true, ci pipeline will execute full e2e tests
+e2eTestEnabled: false
+
+## if true ci will auto promote image tag in applications helm chart
+## NOTE if above e2eTestEnabled is "false" ci will ignore this variable, since auto delivery should not happen when there are no tests
+autoVersionDelivery: false

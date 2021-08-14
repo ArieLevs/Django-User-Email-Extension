@@ -1,4 +1,8 @@
 import setuptools
+from pkg_resources import parse_requirements
+
+with open("requirements.txt") as f:
+    requirements = [str(r) for r in parse_requirements(f)]
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -13,17 +17,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ArieLevs/Django-User-Email-Extension",
     packages=setuptools.find_packages(),
-    install_requires=[
-        # pytz is already part of django
-        # 'pytz==2020.1',
-
-        'django>=3.0.7',
-        'django-countries==6.1.2',
-
-        # needed by django-phonenumber-field
-        'phonenumbers==8.12.2',
-        'django-phonenumber-field==4.0.0',
-    ],
+    install_requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

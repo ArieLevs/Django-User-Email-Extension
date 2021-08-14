@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 
 import pytz
 from django.conf import settings
@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from django.core.validators import MinLengthValidator
 from django.core.validators import validate_email
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField

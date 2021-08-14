@@ -65,6 +65,7 @@ class PhoneNumberManager(models.Manager):
 
 
 class UserPhoneNumber(models.Model):
+    id = models.AutoField(primary_key=True)
     # uses https://github.com/stefanfoulis/django-phonenumber-field
     number = PhoneNumberField()
 
@@ -149,6 +150,7 @@ class UserPhoneNumber(models.Model):
 
 class AbstractAddress(models.Model):
     TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
+    id = models.AutoField(primary_key=True)
 
     first_name = models.CharField(_("First name"), max_length=128, validators=[MinLengthValidator(2)])
     last_name = models.CharField(_("Last name"), max_length=128, validators=[MinLengthValidator(2)])
@@ -424,6 +426,7 @@ class DjangoEmailVerifierManger(models.Manager):
 
 
 class DjangoEmailVerifier(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              related_name='email_verification_obj',
                              on_delete=models.CASCADE)

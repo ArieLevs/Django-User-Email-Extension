@@ -27,6 +27,7 @@ jobs:
     - name: Test with unittest
       run: |
         pip install -r requirements.txt
+        pip install coverage==5.5
         python manage.py makemigrations && coverage run runtests.py
 
         # generate coverage json report

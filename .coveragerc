@@ -1,0 +1,5 @@
+[run]
+omit =
+    venv/*
+    django_user_email_extension/tests/*
+    django_user_email_extension/migrations/*

@@ -27,9 +27,25 @@ jobs:
     - name: Test with unittest
       run: |
         pip install -r requirements.txt
-        python manage.py makemigrations && python runtests.py
+        python manage.py makemigrations && coverage run runtests.py
+
+        # generate coverage json report
+        coverage json
+        # just print coverage locally
+        coverage report --fail-under=70
+
     - name: Check distribution valid
       run: |
         pip install wheel twine
         python setup.py bdist_wheel
         twine check dist/*
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        ## secrets should have CODECOV_TOKEN
+        #token: ${{ secrets.CODECOV_TOKEN }}
+        flags: unittests
+        name: codecov-django-user-email-extention
+        fail_ci_if_error: true
+        verbose: true

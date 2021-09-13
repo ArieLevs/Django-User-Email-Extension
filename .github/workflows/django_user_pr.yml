@@ -30,8 +30,8 @@ jobs:
         pip install coverage==5.5
         python manage.py makemigrations && coverage run runtests.py
 
-        # generate coverage json report
-        coverage json
+        # generate coverage xml report
+        coverage xml
         # just print coverage locally
         coverage report --fail-under=70
 

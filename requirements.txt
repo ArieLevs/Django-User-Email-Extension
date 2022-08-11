@@ -1,5 +1,5 @@
 
-django==3.2.6
+django==3.2.15
 django-countries==7.2.1
 phonenumbers==8.12.29 # needed for django-phonenumber-field
 django-phonenumber-field==5.2.0

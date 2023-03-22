@@ -122,4 +122,4 @@ jobs:
           git add setup.py
           git commit -m "update version to: ${{ steps.app_version_bump.outputs.app_version }} (github action)"
 
-          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/pybump HEAD:master
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/Django-User-Email-Extension HEAD:master

@@ -1,0 +1,125 @@
+name: Python package
+
+on:
+  push:
+    # run only when pushed to master branch.
+    branches:
+      - master
+
+    # run on every publish tags.
+    tags:
+      - v*
+
+    paths:
+      - 'django_user_email_extension/**'
+      - 'requirements.txt'
+      - 'setup.py'
+
+  # run on any pr.
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=venv
+    - name: Test with unittest (codecov)
+      run: |
+        pip install -r requirements.txt
+        pip install coverage==7.2.2
+        # discover all tests in the test directory
+        python manage.py makemigrations && coverage run runtests.py
+
+        # generate coverage xmo report
+        coverage xml
+        # just print coverage locally
+        coverage report --fail-under=70
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        ## secrets should have CODECOV_TOKEN
+        #token: ${{ secrets.CODECOV_TOKEN }}
+        flags: unittests
+        name: codecov-django-user-email-extention
+        fail_ci_if_error: true
+        verbose: true
+
+    - name: Check distribution valid
+      run: |
+        pip install wheel twine
+        python setup.py bdist_wheel
+        twine check dist/*
+
+  simulate:
+    if: github.ref != 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Check distribution valid and test publish
+        run: |
+          pip install wheel twine
+          python setup.py bdist_wheel
+          twine check dist/*
+
+          twine upload dist/* \
+            --username ${{ secrets.PYPI_TEST_USERNAME }} \
+            --password ${{ secrets.PYPI_TEST_PASSWORD }} \
+            --repository testpypi --skip-existing
+
+  release:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Bump version using self app
+        id: app_version_bump
+        run: |
+          pip install pybump
+          echo "app_version=$(pybump bump --level patch --file setup.py)" >> $GITHUB_OUTPUT
+
+      - name: Publish to global pypi
+        run: |
+          pip install wheel twine
+          python setup.py bdist_wheel
+
+          twine upload dist/* \
+            --username ${{ secrets.PYPI_USERNAME }} \
+            --password ${{ secrets.PYPI_PASSWORD }} \
+            --repository-url https://upload.pypi.org/legacy/
+
+      - name: Commit new version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Update version on git repo
+          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --local user.name "GitHub Action"
+          git add setup.py
+          git commit -m "update version to: ${{ steps.app_version_bump.outputs.app_version }} (github action)"
+
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/pybump HEAD:master

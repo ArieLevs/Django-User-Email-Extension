@@ -11,7 +11,7 @@ from django.core.validators import MinLengthValidator
 from django.core.validators import validate_email
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 

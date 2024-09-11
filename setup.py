@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="django-user-email-extension",
-    version="2.4.2",
+    version="2.5.0",
     author="Arie Lev",
     author_email="levinson.arie@gmail.com",
     description="User model extender for django",
@@ -20,11 +20,13 @@ setuptools.setup(
     install_requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Framework :: Django",
-        "Framework :: Django :: 3.0",
         "Framework :: Django :: 4.0",
+        "Framework :: Django :: 5.0",
     ],
 )

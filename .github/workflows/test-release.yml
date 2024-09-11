@@ -63,7 +63,7 @@ jobs:
 
     - name: Check distribution valid
       run: |
-        pip install wheel twine
+        pip install wheel twine setuptools
         python setup.py bdist_wheel
         twine check dist/*
 
@@ -78,7 +78,7 @@ jobs:
           python-version: '3.x'
       - name: Check distribution valid and test publish
         run: |
-          pip install wheel twine
+          pip install wheel twine setuptools
           python setup.py bdist_wheel
           twine check dist/*
 
@@ -104,7 +104,7 @@ jobs:
 
       - name: Publish to global pypi
         run: |
-          pip install wheel twine
+          pip install wheel twine setuptools
           python setup.py bdist_wheel
 
           twine upload dist/* \

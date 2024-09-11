@@ -43,7 +43,7 @@ jobs:
     - name: Test with unittest (codecov)
       run: |
         pip install -r requirements.txt
-        pip install coverage==7.2.2
+        pip install coverage==7.4
         # discover all tests in the test directory
         python manage.py makemigrations && coverage run runtests.py
 
@@ -52,10 +52,10 @@ jobs:
         # just print coverage locally
         coverage report --fail-under=70
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4.3.1
       with:
         ## secrets should have CODECOV_TOKEN
-        #token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ secrets.CODECOV_TOKEN }}
         flags: unittests
         name: codecov-django-user-email-extention
         fail_ci_if_error: true

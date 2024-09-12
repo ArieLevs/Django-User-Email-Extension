@@ -57,7 +57,7 @@ jobs:
         ## secrets should have CODECOV_TOKEN
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: unittests
-        name: codecov-django-user-email-extention
+        name: codecov-django-user-email-extension
         fail_ci_if_error: true
         verbose: true
 
@@ -72,8 +72,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Check distribution valid and test publish
@@ -81,11 +81,11 @@ jobs:
           pip install wheel twine setuptools
           python setup.py bdist_wheel
           twine check dist/*
-
-          twine upload dist/* \
-            --username ${{ secrets.PYPI_TEST_USERNAME }} \
-            --password ${{ secrets.PYPI_TEST_PASSWORD }} \
-            --repository testpypi --skip-existing
+          twine upload dist/* --skip-existing
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+          TWINE_REPOSITORY_URL: "https://test.pypi.org/legacy/"
 
   release:
     if: github.ref == 'refs/heads/master'
@@ -106,11 +106,11 @@ jobs:
         run: |
           pip install wheel twine setuptools
           python setup.py bdist_wheel
-
-          twine upload dist/* \
-            --username ${{ secrets.PYPI_USERNAME }} \
-            --password ${{ secrets.PYPI_PASSWORD }} \
-            --repository-url https://upload.pypi.org/legacy/
+          twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY_URL: "https://upload.pypi.org/legacy/"
 
       - name: Commit new version
         env:

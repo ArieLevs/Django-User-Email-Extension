@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 import pytz
 from django.conf import settings
@@ -10,7 +10,6 @@ from django.core.mail import send_mail
 from django.core.validators import MinLengthValidator
 from django.core.validators import validate_email
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
@@ -461,7 +460,7 @@ class DjangoEmailVerifier(models.Model):
         return self.date_created + timedelta(hours=hours_to_expire) if hours_to_expire is not None else None
 
     def is_uuid_expired(self):
-        return timezone.now() >= self.uuid_expire_date()
+        return datetime.now(tz=timezone.utc) >= self.uuid_expire_date()
 
     def verify_record(self):
         if self.is_uuid_expired():
@@ -470,7 +469,7 @@ class DjangoEmailVerifier(models.Model):
         # If current object yet verified
         if not self.verified():
             self.is_verified = True
-            self.verified_at = timezone.now()
+            self.verified_at = datetime.now(tz=timezone.utc)
             self.save()
         else:
             raise Exception("email {} already verified".format(self.email))

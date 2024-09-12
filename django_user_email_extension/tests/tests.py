@@ -222,7 +222,7 @@ class TestUserAddressInteraction(TestCase):
 class TestPhoneNumberModel(TestCase):
     def setUp(self):
         number_1 = '+1-212-509-5555'
-        number_2 = '+972-50-123-4567'
+        number_2 = '+972-50-923-4567'
         self.user_alice = User.objects.create_user(email="test_phone_number_1@nalkins.cloud")
         self.user_alice.save()
         self.user_bob = User.objects.create_user(email="test_phone_number_2@nalkins.cloud")

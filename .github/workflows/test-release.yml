@@ -24,7 +24,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [3.9]
+        python-version: [3.11]
 
     steps:
     - uses: actions/checkout@v3
@@ -43,7 +43,7 @@ jobs:
     - name: Test with unittest (codecov)
       run: |
         pip install -r requirements.txt
-        pip install coverage==7.2.2
+        pip install coverage==7.4
         # discover all tests in the test directory
         python manage.py makemigrations && coverage run runtests.py
 
@@ -52,18 +52,18 @@ jobs:
         # just print coverage locally
         coverage report --fail-under=70
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4.3.1
       with:
         ## secrets should have CODECOV_TOKEN
-        #token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ secrets.CODECOV_TOKEN }}
         flags: unittests
-        name: codecov-django-user-email-extention
+        name: codecov-django-user-email-extension
         fail_ci_if_error: true
         verbose: true
 
     - name: Check distribution valid
       run: |
-        pip install wheel twine
+        pip install wheel twine setuptools
         python setup.py bdist_wheel
         twine check dist/*
 
@@ -72,20 +72,20 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Check distribution valid and test publish
         run: |
-          pip install wheel twine
+          pip install wheel twine setuptools
           python setup.py bdist_wheel
           twine check dist/*
-
-          twine upload dist/* \
-            --username ${{ secrets.PYPI_TEST_USERNAME }} \
-            --password ${{ secrets.PYPI_TEST_PASSWORD }} \
-            --repository testpypi --skip-existing
+          twine upload dist/* --skip-existing
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+          TWINE_REPOSITORY_URL: "https://test.pypi.org/legacy/"
 
   release:
     if: github.ref == 'refs/heads/master'
@@ -104,13 +104,13 @@ jobs:
 
       - name: Publish to global pypi
         run: |
-          pip install wheel twine
+          pip install wheel twine setuptools
           python setup.py bdist_wheel
-
-          twine upload dist/* \
-            --username ${{ secrets.PYPI_USERNAME }} \
-            --password ${{ secrets.PYPI_PASSWORD }} \
-            --repository-url https://upload.pypi.org/legacy/
+          twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY_URL: "https://upload.pypi.org/legacy/"
 
       - name: Commit new version
         env:

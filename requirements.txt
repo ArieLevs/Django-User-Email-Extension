@@ -1,5 +1,5 @@
-django~=4.1.7
-django-countries==7.5.1
-phonenumbers==8.13.7 # needed for django-phonenumber-field
-django-phonenumber-field==7.0.2
+django>=5.0
+django-countries==7.6.1
+phonenumbers==8.13.45 # needed for django-phonenumber-field
+django-phonenumber-field==8.0.0
 pytz==2022.7.1

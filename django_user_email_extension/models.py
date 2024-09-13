@@ -453,16 +453,26 @@ class DjangoEmailVerifier(models.Model):
         return self.is_verified
 
     def uuid_expire_date(self):
-        # Only if DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is not None,
-        # Else, uuid never expire.
-        # Set example: DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=''
+        """
+        The method checks for an expiration time (DJANGO_EMAIL_VERIFIER_EXPIRE_TIME) in the Django settings.
+        If it's set, it adds that time (in hours) to the date_created of an object, returning the expiration date.
+        If not, it returns None, meaning no expiration is defined.
+        :return: datetime object, or None if "DJANGO_EMAIL_VERIFIER_EXPIRE_TIME" is not defined
+        """
         hours_to_expire = getattr(settings, 'DJANGO_EMAIL_VERIFIER_EXPIRE_TIME', None)
         return self.date_created + timedelta(hours=hours_to_expire) if hours_to_expire is not None else None
 
     def is_uuid_expired(self):
+        """
+        Checks if the UUID has expired by comparing the current time with its expiration date.
+        :return: True if expired, False if not
+        """
+        expire_date = self.uuid_expire_date()
+        if expire_date is None:
+            return False  # No expiration set, so treat as not expired
         return datetime.now(tz=timezone.utc) >= self.uuid_expire_date()
 
-    def verify_record(self):
+    def activate_user(self):
         if self.is_uuid_expired():
             raise Exception("UUID {} expired".format(self.verification_uuid))
 

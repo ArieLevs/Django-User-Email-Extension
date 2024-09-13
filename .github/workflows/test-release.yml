@@ -92,8 +92,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Bump version using self app
@@ -120,6 +120,6 @@ jobs:
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git config --local user.name "GitHub Action"
           git add setup.py
-          git commit -m "update version to: ${{ steps.app_version_bump.outputs.app_version }} (github action)"
+          git commit -m "update version to: ${{ steps.app_version_bump.outputs.app_version }} (github actions)"
 
           git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/Django-User-Email-Extension HEAD:master

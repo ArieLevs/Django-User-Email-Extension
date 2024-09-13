@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.db.utils import IntegrityError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_user_email_extension.models import User, DjangoEmailVerifier, UserAddress, UserPhoneNumber
 
@@ -67,22 +67,86 @@ class TestDjangoEmailVerifierModel(TestCase):
         self.email_object.is_verified = True
         self.assertTrue(self.email_object.verified())
 
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=25)
     def test_uuid_expire_date(self):
         """
         Test email verification expiration,
-        since test.setting.DJANGO_EMAIL_VERIFIER_EXPIRE_TIME value is 25, adding timedelta of 25 hours
-        :return:
         """
+        # since test.setting.DJANGO_EMAIL_VERIFIER_EXPIRE_TIME value is 25, adding timedelta of 25 hours
         expected_expire = self.email_object.date_created.replace(microsecond=0,
                                                                  second=0,
                                                                  minute=0) + timedelta(hours=25)
+        # since "date_created" uses "now" timestamp of creation time,
+        # until this tests runs there could be few microsecond/seconds/minutes passed, so we "reset" them to 0
         actual_expire = self.email_object.uuid_expire_date().replace(microsecond=0,
                                                                      second=0,
                                                                      minute=0)
         self.assertEqual(expected_expire, actual_expire)
 
-    def test_is_uuid_expired(self):
-        self.assertFalse(self.email_object.is_uuid_expired())
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=None)
+    def test_uuid_expire_date_none(self):
+        """
+        Test email verification expiration date when DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is None
+        :return:
+        """
+        self.assertIsNone(self.email_object.uuid_expire_date())
+
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=0)
+    def test_is_uuid_expired_true(self):
+        """
+        Test email verification expiration date when DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is 0,
+        so it simulates immediate expiration, since there should be few microseconds passed after uuid was created
+        :return:
+        """
+        self.assertTrue(self.email_object.is_uuid_expired(),
+                        msg="since setting immediate expiration time, current check should return true")
+
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=4)
+    def test_is_uuid_expired_false(self):
+        """
+        Test email verification expiration date when DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is 4,
+        it simulates future expiration
+        :return:
+        """
+        self.assertFalse(self.email_object.is_uuid_expired(),
+                         msg="since setting expiration time in the future, current check should return false")
+
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=None)
+    def test_is_uuid_expired_none(self):
+        """
+        Test email verification expiration date when DJANGO_EMAIL_VERIFIER_EXPIRE_TIME is None,
+        it simulates a state where DJANGO_EMAIL_VERIFIER_EXPIRE_TIME was not set
+        :return:
+        """
+        self.assertFalse(self.email_object.is_uuid_expired(),
+                         msg="since setting expiration time to None, treat as never expired")
+
+    @override_settings(DJANGO_EMAIL_VERIFIER_EXPIRE_TIME=0)
+    def test_activate_user_when_uuid_expired(self):
+        """
+        Test activate_user() function when is_uuid_expired() is true
+        """
+        self.assertFalse(self.user.is_active, msg="User is not active at this point")
+        with self.assertRaisesMessage(Exception, "UUID {} expired".format(self.email_object.verification_uuid)):
+            self.email_object.activate_user()
+
+    def test_activate_user_already_verified(self):
+        """
+        Test activate_user() function when is_uuid_expired() is false, and verified() is true (already verified email)
+        """
+        self.email_object.is_verified = True
+        self.assertFalse(self.user.is_active, msg="User is not active at this point")
+        with self.assertRaisesMessage(Exception, "mail {} already verified".format(self.email_object.email)):
+            self.email_object.activate_user()
+
+    def test_activate_user(self):
+        """
+        Test activate_user() function when is_uuid_expired() is false, and verified() is false
+        """
+        self.email_object.is_verified = False
+        self.assertFalse(self.user.is_active, msg="User is not active at this point")
+        self.assertTrue(self.email_object.activate_user(), msg="function activate_user should return true")
+        self.assertTrue(self.user.is_active, msg="User should be active at this point")
 
 
 class TestUserManager(TestCase):

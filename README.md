@@ -86,7 +86,7 @@ path('verify_account/<uuid:verification_uuid>/', views.VerifyEmailUUIDView.as_vi
 
 # initiate verification process on the return view
 ver_uuid = DjangoEmailVerifier.objects.get(verification_uuid='UUID_FROM_REQUEST')
-ver_uuid.verify_record()
+ver_uuid.activate_user()
 ```
 
 The confirmation uuid can be sent as part of the body for example:
